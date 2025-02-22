@@ -37,6 +37,15 @@
       <ows:Identifier>default028mm</ows:Identifier>
       <ows:SupportedCRS>urn:ogc:def:crs:EPSG::4326</ows:SupportedCRS>
       <TileMatrix>
+        <ows:Identifier>0</ows:Identifier>
+        <ScaleDenominator>5.59082264028717E8</ScaleDenominator>
+        <TopLeftCorner>90 -180</TopLeftCorner>
+        <TileWidth>256</TileWidth>
+        <TileHeight>256</TileHeight>
+        <MatrixWidth>1</MatrixWidth>
+        <MatrixHeight>1</MatrixHeight>
+      </TileMatrix>
+      <TileMatrix>
         <ows:Identifier>1</ows:Identifier>
         <ScaleDenominator>2.7922764150666654E8</ScaleDenominator>
         <TopLeftCorner>90 -180</TopLeftCorner>
