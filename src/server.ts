@@ -1,12 +1,20 @@
 import { Application } from "jsr:@oak/oak/application";
 import { Router } from "jsr:@oak/oak/router";
-import { get_ge_tile, get_version_and_key } from "./ge.ts";
+import { get_tile, get_version_and_key } from "./ge.ts";
+import { create_cache_dir, create_qtree_dir } from "./cache.ts";
+
+console.log("初始化...");
+await create_cache_dir();
 
 const { version, key } = await get_version_and_key();
+
+await create_qtree_dir(version);
+
 const error_png = Deno.readFileSync("./data/error.png");
 const router = new Router();
 
 console.log(`Current Version: ${version}`);
+console.log("初始化完成!\n");
 
 router.get("/ge/:z/:x/:y", async (ctx) => {
   const { z, x, y } = ctx.params;
@@ -14,7 +22,7 @@ router.get("/ge/:z/:x/:y", async (ctx) => {
   const nx = parseInt(x);
   const ny = parseInt(y);
 
-  const tile_data = await get_ge_tile(nx, ny, nz, version, key);
+  const tile_data = await get_tile(nx, ny, nz, version, key);
   if (tile_data) {
     ctx.response.type = "image/jpg";
     ctx.response.body = tile_data;

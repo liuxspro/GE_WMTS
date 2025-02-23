@@ -1,3 +1,7 @@
+import { array_is_equal } from "jsr:@liuxspro/utils";
+import { get_qtree, parse_qtree } from "./qtree.ts";
+import { QuadKey } from "./quad.ts";
+
 export async function get_dbroot() {
   const url = "http://kh.google.com/dbRoot.v5?hl=zh-hans&gl=hk";
   const data = await (await fetch(url)).bytes();
@@ -17,6 +21,7 @@ export async function get_version_and_key() {
   return { version, key };
 }
 
+// 使用密钥解密数据
 export function decrypt_data(
   encrypted_data: Uint8Array,
   key: Uint8Array
@@ -44,23 +49,27 @@ export function decrypt_data(
   return decryptedBytes;
 }
 
-function arraysEqual(a: Uint8Array, b: Uint8Array): boolean {
-  if (a.length !== b.length) return false;
-  return a.every((value, index) => value === b[index]);
-}
-
 export function decrypt_tile(
   tile_data: Uint8Array,
   key: Uint8Array
 ): Uint8Array | null {
   const header = new Uint8Array([0x07, 0x91, 0xef, 0xa6]);
   // 判断一下文件头
-  if (arraysEqual(tile_data.slice(0, 4), header)) {
+  if (array_is_equal(tile_data.slice(0, 4), header)) {
     return decrypt_data(tile_data, key);
   }
   return null;
 }
 
+/**
+ * 根据 version 获取瓦片
+ * @param x X
+ * @param y Y
+ * @param z Z
+ * @param version 当前 Version 值
+ * @param key 密钥
+ * @returns 解密后的瓦片数据(JPEG)
+ */
 export async function get_ge_tile(
   x: number,
   y: number,
@@ -68,73 +77,30 @@ export async function get_ge_tile(
   version: number,
   key: Uint8Array
 ) {
-  const quad = xyz_to_quad(x, y, z);
-  const tile_url = `https://kh.google.com/flatfile?f1-${quad}-i.${version}`;
+  const quad = new QuadKey(x, y, z);
+  const tile_url = `https://kh.google.com/flatfile?f1-${quad.quad_key}-i.${version}`;
   const raw_tile_data = await (await fetch(tile_url)).bytes();
   const decrypted_tile_data = decrypt_tile(raw_tile_data, key);
   return decrypted_tile_data;
 }
 
-// 经纬度坐标转XYZ
-export function coord_to_xyz(lat: number, lon: number, zoom: number) {
-  const x = Math.floor((Math.pow(2, zoom) * (180 + lon)) / 360);
-  const y = Math.floor((Math.pow(2, zoom - 1) * (90 - lat)) / 180);
-  return { x, y };
-}
-
-// 计算XYZ的中心坐标
-export function xyz_to_coord(x: number, y: number, z: number) {
-  const lon = (x * 360) / Math.pow(2, z) - 180;
-  // 计算瓦片中心点坐标
-  const d_lon = 360 / Math.pow(2, z);
-  const lat = 90 - (y * 180) / Math.pow(2, z - 1);
-  const d_lat = 180 / Math.pow(2, z - 1);
-  return { lon: lon + d_lon / 2, lat: lat - d_lat / 2 };
-}
-
-// 经纬度转四叉树编码
-// 使用瓦片中心点坐标来算，用左上角的坐标算可能有精度误差，导致象限判断错误
-export function get_quad_code(lat: number, lon: number, depth: number) {
-  let code = "0"; // 第一位固定为 '0'
-  let lat1 = 180;
-  let lon1 = -180; // 初始区域左上角坐标
-  let lat2 = -180;
-  let lon2 = 180; // 初始区域右下角坐标
-
-  for (let i = 1; i <= depth; i++) {
-    // 从第二位开始划分
-    const midLat = (lat1 + lat2) / 2; // 中间纬度
-    const midLon = (lon1 + lon2) / 2; // 中间经度
-
-    if (lat >= midLat && lon < midLon) {
-      // 左上象限（'3'）
-      code += "3";
-      lat2 = midLat;
-      lon2 = midLon;
-    } else if (lat >= midLat && lon >= midLon) {
-      // 右上象限（'2'）
-      code += "2";
-      lat2 = midLat;
-      lon1 = midLon;
-    } else if (lat < midLat && lon >= midLon) {
-      // 右下象限（'1'）
-      code += "1";
-      lat1 = midLat;
-      lon1 = midLon;
-    } else if (lat < midLat && lon < midLon) {
-      // 左下象限（'0'）
-      code += "0";
-      lat1 = midLat;
-      lon2 = midLon;
-    } else {
-      throw new Error("Invalid lat/lon values");
-    }
+export async function get_tile(
+  x: number,
+  y: number,
+  z: number,
+  version: number,
+  key: Uint8Array
+) {
+  const quad = new QuadKey(x, y, z);
+  const qtree_name = quad.parent_quad_key;
+  const qtree_data = await get_qtree(qtree_name, version, key);
+  const tiles = parse_qtree(qtree_data, qtree_name);
+  const tile_info = tiles[quad.quad_key];
+  if (tile_info != null) {
+    const tile_version = tile_info.imagery_version;
+    const tile_data = await get_ge_tile(x, y, z, tile_version, key);
+    return tile_data;
+  } else {
+    console.error(`${z}/${x}/${y} 未找到 version 信息`);
   }
-
-  return code;
-}
-
-export function xyz_to_quad(x: number, y: number, z: number) {
-  const coord = xyz_to_coord(x, y, z);
-  return get_quad_code(coord.lat, coord.lon, z);
 }
