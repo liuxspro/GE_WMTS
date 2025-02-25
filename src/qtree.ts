@@ -18,19 +18,19 @@ export async function get_qtree_rawdata(
 }
 
 export async function get_qtree(
-  quadkey: string,
+  quad_key: string,
   version: number,
   key: Uint8Array
 ) {
   // 检查该 qtree 文件是否已经被缓存
-  const qtree_file_name = `q2-${quadkey}-q.${version}`;
-  const qtree_file_path = `Cache/Qtrees/${version}/${qtree_file_name}`;
+  const qtree_file_name = `q2-${quad_key}-q.${version}`;
+  const qtree_file_path = `Cache/Qtrees/Earth/${version}/${qtree_file_name}`;
   try {
     const qtree_rawdata = await Deno.readFile(qtree_file_path);
     return decrypt_qtree_data(qtree_rawdata, key);
   } catch (_err) {
     // 如果不存在就请求，然后保存
-    const qtree_rawdata = await get_qtree_rawdata(quadkey, version);
+    const qtree_rawdata = await get_qtree_rawdata(quad_key, version);
     Deno.writeFile(qtree_file_path, qtree_rawdata);
     return decrypt_qtree_data(qtree_rawdata, key);
   }
@@ -183,7 +183,7 @@ type TilesInfo = {
 
 export function parse_qtree(
   qtree_data: Uint8Array,
-  quad_key_short: string
+  quad_key: string
 ): TilesInfo {
   const nodes = get_nodes_from_qtree(qtree_data);
   const tiles_info: TilesInfo = {};
@@ -221,11 +221,11 @@ export function parse_qtree(
 
   // 处理根节点
   const root = nodes[index++];
-  if (quad_key_short === "") {
+  if (quad_key === "") {
     populate_tiles("", root, 1); // 根节点从 level 1 开始
   } else {
-    tiles_info[quad_key_short] = root; // 非根节点直接设置
-    populate_tiles(quad_key_short, root, 0); // 从 level 0 开始
+    tiles_info[quad_key] = root; // 非根节点直接设置
+    populate_tiles(quad_key, root, 0); // 从 level 0 开始
   }
 
   return tiles_info;

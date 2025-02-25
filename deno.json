@@ -4,6 +4,7 @@
   },
   "imports": {
     "@es-toolkit/es-toolkit": "jsr:@es-toolkit/es-toolkit@^1.31.0",
-    "@std/assert": "jsr:@std/assert@1"
+    "@std/assert": "jsr:@std/assert@1",
+    "protobufjs": "npm:protobufjs@^7.4.0"
   }
 }

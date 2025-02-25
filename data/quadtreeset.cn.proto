@@ -1,0 +1,158 @@
+// 版权所有 2017 Google Inc.
+//
+// 根据 Apache License, Version 2.0 (以下简称“许可证”) 许可，您只能在遵守许可证的前提下使用本文件。
+// 您可以在以下网址获得许可证副本：
+//
+//      http://www.apache.org/licenses/LICENSE-2.0
+//
+// 除非适用法律要求或书面同意，否则本软件按“原样”提供，没有任何明示或暗示的保证或条件。
+// 请参阅许可证以了解特定的许可权和限制。
+
+//
+// 下一代四叉树数据包的协议缓冲区定义。
+//
+// 我们将地球划分为四叉树。每个四叉树的节点包含该节点上可用的图层信息。
+// 整个四叉树被划分为 QuadtreePacket，每个 QuadtreePacket 包含了整个四叉树的一个 n 层子树。
+
+syntax = "proto2";
+
+package keyhole;
+
+// 渠道信息来自 Fusion，并使用 Fusion 的编号方案。
+message QuadtreeChannel {
+  required int32 type = 1;           // 渠道类型
+  required int32 channel_epoch = 2;  // 渠道的时间戳
+};
+
+// 用于特定日期的“定时”图块：
+// 每个图块在该日期和版本的图块信息。
+message QuadtreeImageryTimedTile {
+  // 从午夜起的毫秒数，必须是“required”以使旧版客户端兼容
+  required int32 milliseconds = 1;
+
+  // 定时图块的版本，如果与 “QuadtreeImageryDatedTile” 中的 "dated_tile_epoch" 不同，则存在
+  // 必须是“required”以使旧版客户端兼容
+  required int32 timed_tile_epoch = 2;
+
+  // 定时图块的提供者，如果与 “QuadtreeImageryDatedTile” 中的 "provider" 不同，则存在
+  optional int32 provider = 3;
+};
+
+// 时间机器的图层特定信息。
+// 每个可用的日期图块有一个条目。
+// 日期使用 JpegCommentDate::YearMonthDayKey 格式。
+// dated_tile_epoch 是时间机器图块的版本。
+// 如果图块可以与 keyhole-hires 共享，则给出其共享图块的日期。
+// timed_tiles 字段包含具有比一天更精细时间分辨率的额外图块。
+// timed_tiles 将按升序排序。
+// 请注意，旧客户端仍然需要“全天”图块，无法看到 timed_tiles 字段。
+message QuadtreeImageryDatedTile {
+  required int32 date = 1;             // 图块日期
+  required int32 dated_tile_epoch = 2; // 时间机器图块的版本
+  required int32 provider = 3;         // 图块提供者
+  repeated QuadtreeImageryTimedTile timed_tiles = 4; // 定时图块列表
+};
+
+message QuadtreeImageryDates {
+  repeated QuadtreeImageryDatedTile dated_tile = 1;  // 可用的日期图块
+  optional int32 shared_tile_date = 2;   // 从 keyhole 共享的图块的日期
+  // 从粗略层级中可见的图层的日期。这些日期按升序排序。
+  // coarse_tile_dates 中的日期与 dated_tile 中的图块日期不交集，而是补充的。
+  // coarse_tile_dates 属于上层分辨率较低的图块，当前层级不可见。它们存在于这里，以便让用户知道上层不同的图层。
+  repeated int32 coarse_tile_dates = 3;
+  // 从 keyhole 共享的图块的时间（从午夜起的毫秒数）。
+  optional int32 shared_tile_milliseconds = 4;
+};
+
+// 四叉树图层定义
+message QuadtreeLayer {
+  enum LayerType {
+    LAYER_TYPE_IMAGERY = 0;        // 图像图层
+    LAYER_TYPE_TERRAIN = 1;        // 地形图层
+    LAYER_TYPE_VECTOR = 2;         // 向量图层
+    LAYER_TYPE_IMAGERY_HISTORY = 3; // 图像历史图层
+  }
+
+  required LayerType type = 1;     // 图层类型
+  required int32 layer_epoch = 2;  // 图层的版本时间戳
+  optional int32 provider = 3;     // 图层的提供者 ID
+
+  // 如果图层类型有额外信息，则在这里添加：
+  optional QuadtreeImageryDates dates_layer = 4; // 图层日期信息
+};
+
+message QuadtreeNode {
+  // 此节点的标志位的位域。
+  // 0-3: 表示每个内部子节点的存在位
+  // 4: 对于叶节点，表示此节点下方是否有其他四叉树集
+  // 5: 表示此节点中是否有向量数据
+  // 6: 表示此节点中是否有图像数据
+  // 7: 表示此节点中是否有地形数据
+  enum NodeFlags {
+    option allow_alias = true;    // 允许多个枚举值共享相同的数值，不然会报错
+    NODE_FLAGS_CHILD_COUNT = 4;   // 内部节点指示子节点存在
+    NODE_FLAGS_CACHE_BIT = 4;     // 叶节点下有数据
+    NODE_FLAGS_DRAWABLE_BIT = 5;  // 此节点有向量数据
+    NODE_FLAGS_IMAGE_BIT = 6;     // 此节点有图像数据
+    NODE_FLAGS_TERRAIN_BIT = 7;   // 此节点有地形数据
+  }
+
+  optional int32 flags = 1;      // 节点标志
+
+  // 此节点生成的版本时间戳。
+  // 目前，数据包中的所有节点同时生成，因此每个节点的版本相同。
+  // 如果我们只生成已更改的节点，未来可能会有所不同。
+  // 客户端使用该信息保持其节点缓存更新。
+  optional int32 cache_node_epoch = 2;
+
+  // 该节点的图层数据。
+  // 图层：图像、向量、地形等。
+  repeated QuadtreeLayer layer = 3;
+
+  // 该节点的渠道信息。
+  // 渠道是向量图层的组成部分，来自 Fusion 流程。
+  repeated QuadtreeChannel channel = 4;
+};
+
+// 完整的四叉树数据包。包含整个全球四叉树的一个子树。
+message QuadtreePacket {
+  // 此四叉树数据包生成的版本时间戳。
+  required int32 packet_epoch = 1;
+
+  // 节点有两种编号方案：
+  //
+  // 1) “子索引”。这种编号从树的顶部开始，按每一层的左到右的顺序排列，如下所示：
+  //
+  //                    0
+  //                 /     \                           
+  //               1  86 171 256
+  //            /     \   
+  //          2  3  4  5 ...
+  //        /   \                                  
+  //       6 7 8 9  ...
+  //
+  // 注意，第二行是特殊的，它不是左到右顺序。但是，Keyhole 的根节点是特殊的，它的排列不按这个顺序：
+  //
+  //                    0
+  //                 /     \                           
+  //               1  2  3  4
+  //            /     \   
+  //          5  6  7  8 ...
+  //       /     \                                    
+  //     21 22 23 24  ...
+  //
+  // 第二行的混乱通过 TreeNumbering 构造函数的参数进行控制。
+  //
+  // 2) “中序遍历”。节点在中序遍历中的顺序。
+  //
+  // 客户端使用子索引顺序请求节点。
+  // 有关详细信息，请参见 googleclient/geo/earth_enterprise/src/common/qtpacket/tree_utils.cpp。
+  
+  // 此数据包中的所有四叉树节点，按子索引编号。
+  repeated group SparseQuadtreeNode = 2 {
+    // 此节点在四叉树数据包中的索引。四叉树数据包中的节点按子索引顺序编号且稀疏。
+    // 注意：节点当前不保证按任何特定顺序排序。
+    required int32 index = 3;               // 子索引索引
+    required QuadtreeNode Node = 4;         // 节点本身
+  }
+};

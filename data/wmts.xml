@@ -33,6 +33,24 @@
       <ResourceURL format="image/png" resourceType="tile"
         template="http://localhost:8080/ge/{TileMatrix}/{TileCol}/{TileRow}" />
     </Layer>
+    <Layer>
+      <ows:Title>谷歌地球历史影像</ows:Title>
+      <ows:Abstract>谷歌地球历史影像</ows:Abstract>
+      <ows:WGS84BoundingBox>
+        <ows:LowerCorner>-180.0 -90</ows:LowerCorner>
+        <ows:UpperCorner>180.0 90</ows:UpperCorner>
+      </ows:WGS84BoundingBox>
+      <ows:Identifier>gehistory</ows:Identifier>
+      <Style>
+        <ows:Identifier>default</ows:Identifier>
+      </Style>
+      <Format>image/png</Format>
+      <TileMatrixSetLink>
+        <TileMatrixSet>default028mm</TileMatrixSet>
+      </TileMatrixSetLink>
+      <ResourceURL format="image/png" resourceType="tile"
+        template="http://localhost:8080/ge/history/{TileMatrix}/{TileCol}/{TileRow}?d=fcb36&amp;v=354" />
+    </Layer>
     <TileMatrixSet>
       <ows:Identifier>default028mm</ows:Identifier>
       <ows:SupportedCRS>urn:ogc:def:crs:EPSG::4326</ows:SupportedCRS>
