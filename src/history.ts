@@ -1,6 +1,6 @@
 import protobuf from "protobufjs";
 import { isBitSet, decrypt_qtree_data } from "./qtree.ts";
-import { QuadKey } from "./quad.ts";
+import { QuadKey, gcs_to_quad } from "./quad.ts";
 import { decrypt_tile } from "./ge.ts";
 
 export async function get_his_dbroot() {
@@ -62,7 +62,7 @@ export async function get_his_qtree(
 
 interface DatedTile {
   date: number; // Tile 日期
-  dated_tile_epoch: number; // 版本
+  datedTileEpoch: number; // 版本
   provider: number; // 提供商
 }
 
@@ -105,21 +105,25 @@ export async function get_nodes_from_qtree(
 ): Promise<GEHistoryTileInfo[]> {
   const qtree = await deserialize_qtreepacket(qtree_data);
   const sparse_qtree_nodes = qtree["sparseQuadtreeNode"];
-  const nodes = [];
+  const nodes: GEHistoryTileInfo[] = [];
   for (let i = 0; i < sparse_qtree_nodes.length; i++) {
     const flags = sparse_qtree_nodes[i].Node.flags;
     const all_layers = sparse_qtree_nodes[i].Node.layer;
-    let layer: HistoryLayer;
+    let layer: DatesLayer;
     if (all_layers === undefined) {
-      layer = {
-        layer_type: LayerType.LAYER_TYPE_IMAGERY,
-        layer_epoch: 0,
-        dates_layer: [],
-      };
+      layer = [
+        {
+          date: 0,
+          datedTileEpoch: 0,
+          provider: 0,
+        },
+      ];
     } else {
-      layer = all_layers[1].datesLayer.datedTile;
+      // 一般会有 2 个Layer LAYER_TYPE_IMAGERY 和 LAYER_TYPE_IMAGERY_HISTORY
+      // 特殊的只有 LAYER_TYPE_IMAGERY_HISTORY
+      // 取最后一个
+      layer = all_layers.at(-1).datesLayer.datedTile;
     }
-
     const item = new GEHistoryTileInfo(flags, layer);
     nodes.push(item);
   }
@@ -135,9 +139,9 @@ const terrainBitmask = 0x80;
 
 export class GEHistoryTileInfo {
   bitfield: number;
-  history_layer: HistoryLayer;
+  history_layer: DatesLayer;
 
-  constructor(bitfield: number, history_layer: HistoryLayer) {
+  constructor(bitfield: number, history_layer: DatesLayer) {
     this.bitfield = bitfield;
     this.history_layer = history_layer;
   }
@@ -261,11 +265,27 @@ export async function get_history_layer(
   const qtree_data = await get_his_qtree(quad.parent_quad_key, version, key);
   const tiles = await parse_history_qtree(qtree_data, quad.parent_quad_key);
   const current_tile = tiles[quad.quad_key];
-  console.log(current_tile);
-  const l = current_tile?.history_layer;
-  return l;
+  if (current_tile != null) {
+    return current_tile.history_layer;
+  } else {
+    throw Error("Filed to get history layer");
+  }
 }
 
-// export function get_history_layer_dates(layer: HistoryLayer) {
-//   return layer.filter((item) => item.date >= 10000).map((item) => item.date);
-// }
+export function get_history_layer_dates(layer: DatesLayer) {
+  return layer
+    .filter((item) => item.date >= 10000)
+    .map((item) => number_to_date(item.date));
+}
+
+export async function query_point(
+  lat: number,
+  lon: number,
+  level: number,
+  version: number,
+  key: Uint8Array
+) {
+  const quad = new QuadKey(gcs_to_quad(lat, lon, level));
+  const layers = await get_history_layer(quad, version, key);
+  return layers;
+}

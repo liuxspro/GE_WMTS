@@ -6,7 +6,7 @@ import {
   create_qtree_dir,
   create_his_qtree_dir,
 } from "./cache.ts";
-import { get_hisversion, get_history_tile } from "./history.ts";
+import { get_hisversion, get_history_tile, query_point } from "./history.ts";
 
 console.log("初始化...");
 await create_cache_dir();
@@ -72,11 +72,43 @@ router.get("/ge/history/:z/:x/:y", async (ctx) => {
   }
 });
 
+router.get("/ge/his/query", async (ctx) => {
+  const lon = ctx.request.url.searchParams.get("lon") || "";
+  const lat = ctx.request.url.searchParams.get("lat") || "";
+  const level = ctx.request.url.searchParams.get("level") || "";
+  const lon_number = parseFloat(lon);
+  const lat_number = parseFloat(lat);
+  const level_number = parseFloat(level);
+  const layers = await query_point(
+    lat_number,
+    lon_number,
+    level_number,
+    his_version,
+    key
+  );
+  ctx.response.type = "text/json";
+  ctx.response.body = layers;
+});
+
 router.get("/ge/wmts", (ctx) => {
   ctx.response.type = "text/xml;charset=UTF-8";
   const decoder = new TextDecoder("utf-8");
   const data = Deno.readFileSync("./data/wmts.xml");
   ctx.response.body = decoder.decode(data);
+});
+
+router.get("/ge/his/wmts", (ctx) => {
+  const d = ctx.request.url.searchParams.get("d") || "";
+  const v = ctx.request.url.searchParams.get("v") || "";
+  ctx.response.type = "text/xml;charset=UTF-8";
+  const decoder = new TextDecoder("utf-8");
+  const data = Deno.readFileSync("./data/wmts.history.xml");
+  const xml = decoder.decode(data);
+  const new_xml = xml.replace(
+    "{{ URL }}",
+    `http://localhost:8080/ge/history/{TileMatrix}/{TileCol}/{TileRow}?d=${d}&amp;v=${v}`
+  );
+  ctx.response.body = new_xml;
 });
 
 const app = new Application();

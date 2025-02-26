@@ -21,7 +21,7 @@
  * const quad_key = gcs_to_quad(45.0, -90.0, 4);
  * console.log(quad_key); // 例如 "0321"
  */
-function gcs_to_quad(lat: number, lon: number, depth: number): string {
+export function gcs_to_quad(lat: number, lon: number, depth: number): string {
   let code = "0"; // 第一位固定为 '0'
   let lat1 = 180;
   let lon1 = -180; // 初始区域左上角坐标
