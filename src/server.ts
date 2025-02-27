@@ -7,22 +7,35 @@ import {
   create_his_qtree_dir,
 } from "./cache.ts";
 import { get_hisversion, get_history_tile, query_point } from "./history.ts";
+import { join, dirname } from "jsr:@std/path";
 
 console.log("初始化...");
+
+// 获取当前脚本的绝对路径
+const currentDir = dirname(new URL(import.meta.url).pathname).slice(1);
+const root_dir = dirname(currentDir);
+const data_dir = join(root_dir, "data");
+// static file path
+const error_png_path = join(data_dir, "error.png");
+const wmts_path = join(data_dir, "wmts.xml");
+const wmts_history_path = join(data_dir, "wmts.history.xml");
+
+// 创建缓存文件夹
 await create_cache_dir();
 
+// 获取当前版本和密钥
 const { version, key } = await get_version_and_key();
 await create_qtree_dir(version);
 
 const his_version = await get_hisversion();
 await create_his_qtree_dir(his_version);
 
-const error_png = Deno.readFileSync("./data/error.png");
-const router = new Router();
+const error_png = Deno.readFileSync(error_png_path);
 
-console.log(`Current Version: ${version} History: ${his_version}`);
+console.log(`Current Version: \nEarth:${version} History: ${his_version}`);
 console.log("初始化完成!\n");
 
+const router = new Router();
 router.get("/ge/:z/:x/:y", async (ctx) => {
   const { z, x, y } = ctx.params;
   const nz = parseInt(z);
@@ -93,7 +106,7 @@ router.get("/ge/his/query", async (ctx) => {
 router.get("/ge/wmts", (ctx) => {
   ctx.response.type = "text/xml;charset=UTF-8";
   const decoder = new TextDecoder("utf-8");
-  const data = Deno.readFileSync("./data/wmts.xml");
+  const data = Deno.readFileSync(wmts_path);
   ctx.response.body = decoder.decode(data);
 });
 
@@ -102,7 +115,7 @@ router.get("/ge/his/wmts", (ctx) => {
   const v = ctx.request.url.searchParams.get("v") || "";
   ctx.response.type = "text/xml;charset=UTF-8";
   const decoder = new TextDecoder("utf-8");
-  const data = Deno.readFileSync("./data/wmts.history.xml");
+  const data = Deno.readFileSync(wmts_history_path);
   const xml = decoder.decode(data);
   const new_xml = xml.replace(
     "{{ URL }}",

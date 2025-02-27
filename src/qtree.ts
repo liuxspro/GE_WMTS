@@ -1,6 +1,6 @@
 import { inflate } from "jsr:@deno-library/compress";
 import { array_is_equal } from "jsr:@liuxspro/utils";
-import { decrypt_data } from "./ge.ts";
+import { decode_data } from "./decode.ts";
 
 /**
  *
@@ -58,7 +58,7 @@ export function decrypt_qtree_data(
   encrypted_data: Uint8Array,
   key: Uint8Array
 ): Uint8Array {
-  const zlib_data = decrypt_data(encrypted_data, key);
+  const zlib_data = decode_data(encrypted_data, key);
   const decompressed = inflate(zlib_data.slice(8));
   return decompressed;
 }

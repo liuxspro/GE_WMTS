@@ -1,6 +1,6 @@
 // some test code
 import { get_history_layer, query_point } from "../src/history.ts";
-import { key } from "./utils.ts";
+import { key } from "./key.ts";
 import { QuadKey } from "../src/quad.ts";
 
 const quad_key = new QuadKey(27015, 5230, 15);
