@@ -19,8 +19,8 @@
       <ows:Title>谷歌地球影像</ows:Title>
       <ows:Abstract>谷歌地球影像</ows:Abstract>
       <ows:WGS84BoundingBox>
-        <ows:LowerCorner>-180.0 -90</ows:LowerCorner>
-        <ows:UpperCorner>180.0 90</ows:UpperCorner>
+        <ows:LowerCorner>-180.0 -85.051129</ows:LowerCorner>
+        <ows:UpperCorner>180.0 85.051129</ows:UpperCorner>
       </ows:WGS84BoundingBox>
       <ows:Identifier>ge</ows:Identifier>
       <Style>
@@ -32,13 +32,11 @@
       </TileMatrixSetLink>
       <ResourceURL format="image/png" resourceType="tile"
         template="http://localhost:8080/ge/{TileMatrix}/{TileCol}/{TileRow}" />
-    </Layer>
-    <Layer>
       <ows:Title>谷歌地球历史影像</ows:Title>
       <ows:Abstract>谷歌地球历史影像</ows:Abstract>
       <ows:WGS84BoundingBox>
-        <ows:LowerCorner>-180.0 -90</ows:LowerCorner>
-        <ows:UpperCorner>180.0 90</ows:UpperCorner>
+        <ows:LowerCorner>-180.0 -85.051129</ows:LowerCorner>
+        <ows:UpperCorner>180.0 85.051129</ows:UpperCorner>
       </ows:WGS84BoundingBox>
       <ows:Identifier>gehistory</ows:Identifier>
       <Style>
@@ -54,24 +52,6 @@
     <TileMatrixSet>
       <ows:Identifier>default028mm</ows:Identifier>
       <ows:SupportedCRS>urn:ogc:def:crs:EPSG::4326</ows:SupportedCRS>
-      <TileMatrix>
-        <ows:Identifier>0</ows:Identifier>
-        <ScaleDenominator>5.59082264028717E8</ScaleDenominator>
-        <TopLeftCorner>90 -180</TopLeftCorner>
-        <TileWidth>256</TileWidth>
-        <TileHeight>256</TileHeight>
-        <MatrixWidth>1</MatrixWidth>
-        <MatrixHeight>1</MatrixHeight>
-      </TileMatrix>
-      <TileMatrix>
-        <ows:Identifier>1</ows:Identifier>
-        <ScaleDenominator>2.7922764150666654E8</ScaleDenominator>
-        <TopLeftCorner>90 -180</TopLeftCorner>
-        <TileWidth>256</TileWidth>
-        <TileHeight>256</TileHeight>
-        <MatrixWidth>2</MatrixWidth>
-        <MatrixHeight>1</MatrixHeight>
-      </TileMatrix>
       <TileMatrix>
         <ows:Identifier>2</ows:Identifier>
         <ScaleDenominator>1.3961382075333327E8</ScaleDenominator>

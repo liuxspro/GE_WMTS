@@ -19,8 +19,8 @@
       <ows:Title>谷歌地球历史影像</ows:Title>
       <ows:Abstract>谷歌地球历史影像</ows:Abstract>
       <ows:WGS84BoundingBox>
-        <ows:LowerCorner>-180.0 -90</ows:LowerCorner>
-        <ows:UpperCorner>180.0 90</ows:UpperCorner>
+        <ows:LowerCorner>-180.0 -85.051129</ows:LowerCorner>
+        <ows:UpperCorner>180.0 85.051129</ows:UpperCorner>
       </ows:WGS84BoundingBox>
       <ows:Identifier>gehistory</ows:Identifier>
       <Style>
