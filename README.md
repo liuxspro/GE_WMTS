@@ -9,10 +9,10 @@
 
 ## 进度
  - [x] 影像解密
- - [x] 四叉树编码➡️XYZ行列号（经纬度投影）
+ - [x] 四叉树编码➡️ XYZ 行列号（经纬度投影）
  - [x] WMTS 服务
- - [ ] qtree解析（如何确定瓦片版本号）
- - [ ] 历史影像
+ - [x] 最新影像 qtree 解析（如何确定瓦片版本号）
+ - [ ] 历史影像（初步完成）
  - [ ] 缓存
 
 ## 调试运行
@@ -32,4 +32,5 @@ QGIS 加载效果
 3. 谷歌地球瓦片下载分析（未完） - 暗鸦 - 博客园[EB/OL]. https://www.cnblogs.com/utopin/p/14691863.html.
 4. Google Earth影像数据破解之旅 - fu*k - 博客园[EB/OL]. https://www.cnblogs.com/fuckgiser/p/6424207.html.
 5. qtree文件结构解析(二) - janehlp - 博客园[EB/OL]. https://www.cnblogs.com/janehlp/p/13695688.html.
+6. [Cesium](https://github.com/CesiumGS/cesium)
 
