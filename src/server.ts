@@ -60,6 +60,7 @@ router.get("/ge/history/:z/:x/:y", async (ctx) => {
   const ny = parseInt(y);
   const date = ctx.request.url.searchParams.get("d");
   const version = ctx.request.url.searchParams.get("v");
+
   if (!date) {
     ctx.response.status = 400; // Bad Request
     ctx.response.body = { error: "Missing 'date' query parameter" };
@@ -114,15 +115,20 @@ router.get("/ge/wmts", (ctx) => {
 router.get("/ge/his/wmts", (ctx) => {
   const d = ctx.request.url.searchParams.get("d") || "";
   const v = ctx.request.url.searchParams.get("v") || "";
+  const lower = ctx.request.url.searchParams.get("l") || "-180.0 -85.051129";
+  const upper = ctx.request.url.searchParams.get("u") || "180.0 85.051129";
+
   ctx.response.type = "text/xml;charset=UTF-8";
   const decoder = new TextDecoder("utf-8");
   const data = Deno.readFileSync(wmts_history_path);
-  const xml = decoder.decode(data);
-  const new_xml = xml.replace(
+  let xml = decoder.decode(data);
+  xml = xml.replace(
     "{{ URL }}",
     `http://localhost:8080/ge/history/{TileMatrix}/{TileCol}/{TileRow}?d=${d}&amp;v=${v}`
   );
-  ctx.response.body = new_xml;
+  xml = xml.replace("{{ LC }}", lower);
+  xml = xml.replace("{{ UC }}", upper);
+  ctx.response.body = xml;
 });
 
 const app = new Application();
