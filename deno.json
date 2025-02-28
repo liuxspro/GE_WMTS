@@ -2,7 +2,7 @@
   "tasks": {
     "dev": "deno run -A --watch ./src/server.ts",
     "test": "deno test -A",
-    "build": "deno compile -A --include ./data -o ./dist/gewmts.exe ./src/server.ts "
+    "build": "deno compile -A --include ./data -o ./dist/gewmts.exe ./src/server.ts"
   },
   "imports": {
     "@std/assert": "jsr:@std/assert@1",
