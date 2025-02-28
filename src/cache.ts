@@ -1,3 +1,5 @@
+import { dirname } from "jsr:@std/path";
+
 export async function create_cache_dir() {
   try {
     await Deno.mkdir("Cache", { recursive: true });
@@ -31,5 +33,22 @@ export async function create_his_qtree_dir(version: number) {
     } else {
       console.error("发生错误:", err);
     }
+  }
+}
+
+/**
+ * 获取当前执行脚本所在的目录
+ * @returns {string} 路径
+ */
+export function get_current_dir(): string {
+  const current_dir = import.meta.dirname;
+  if (current_dir) {
+    return current_dir;
+  } else {
+    const dir = dirname(new URL(import.meta.url).pathname);
+    if (Deno.build.os === "windows") {
+      return dir.slice(1);
+    }
+    return dir;
   }
 }

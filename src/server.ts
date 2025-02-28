@@ -5,6 +5,7 @@ import {
   create_cache_dir,
   create_qtree_dir,
   create_his_qtree_dir,
+  get_current_dir,
 } from "./cache.ts";
 import { get_hisversion, get_history_tile, query_point } from "./history.ts";
 import { join, dirname } from "jsr:@std/path";
@@ -12,8 +13,8 @@ import { join, dirname } from "jsr:@std/path";
 console.log("初始化...");
 
 // 获取当前脚本的绝对路径
-const currentDir = dirname(new URL(import.meta.url).pathname).slice(1);
-const root_dir = dirname(currentDir);
+const current_dir = get_current_dir();
+const root_dir = dirname(current_dir);
 const data_dir = join(root_dir, "data");
 // static file path
 const error_png_path = join(data_dir, "error.png");
