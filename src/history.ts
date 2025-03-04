@@ -1,5 +1,11 @@
 import protobuf from "protobufjs";
-import { isBitSet, decrypt_qtree_data } from "./qtree.ts";
+import { decode_qtree_data } from "./decode.ts";
+import {
+  GEHistoryTileInfo,
+  HistoryTilesInfo,
+  SparseQuadtreeNode,
+  Layer,
+} from "./info.ts";
 import { QuadKey, gcs_to_quad } from "./quad.ts";
 import { decrypt_tile } from "./ge.ts";
 
@@ -51,34 +57,13 @@ export async function get_his_qtree(
   const qtree_file_path = `Cache/Qtrees/History/${version}/${qtree_file_name}`;
   try {
     const qtree_rawdata = await Deno.readFile(qtree_file_path);
-    return decrypt_qtree_data(qtree_rawdata, key);
+    return decode_qtree_data(qtree_rawdata, key);
   } catch (_err) {
     // 如果不存在就请求，然后保存
     const qtree_rawdata = await fetch_his_qtree_rawdata(quad_key, version);
     Deno.writeFile(qtree_file_path, qtree_rawdata);
-    return decrypt_qtree_data(qtree_rawdata, key);
+    return decode_qtree_data(qtree_rawdata, key);
   }
-}
-
-interface DatedTile {
-  date: number; // Tile 日期
-  datedTileEpoch: number; // 版本
-  provider: number; // 提供商
-}
-
-enum LayerType {
-  LAYER_TYPE_IMAGERY = 0,
-  LAYER_TYPE_TERRAIN = 1,
-  LAYER_TYPE_VECTOR = 2,
-  LAYER_TYPE_IMAGERY_HISTORY = 3,
-}
-
-type DatesLayer = DatedTile[];
-
-interface HistoryLayer {
-  layer_type: LayerType;
-  layer_epoch: number;
-  dates_layer: DatesLayer;
 }
 
 /**
@@ -96,7 +81,7 @@ export async function deserialize_qtreepacket(qtree_data: Uint8Array) {
 }
 
 /**
- * 从qtree数据中读取 tiles
+ * 从 qtree 数据中读取 tiles
  * @param qtree_data qtree 数据
  * @returns {Promise<GEHistoryTileInfo[]>} Tile 列表
  */
@@ -104,76 +89,22 @@ export async function get_nodes_from_qtree(
   qtree_data: Uint8Array
 ): Promise<GEHistoryTileInfo[]> {
   const qtree = await deserialize_qtreepacket(qtree_data);
-  const sparse_qtree_nodes = qtree["sparseQuadtreeNode"];
+  const sparse_qtree_nodes: SparseQuadtreeNode[] = qtree["sparseQuadtreeNode"];
   const nodes: GEHistoryTileInfo[] = [];
   for (let i = 0; i < sparse_qtree_nodes.length; i++) {
     const flags = sparse_qtree_nodes[i].Node.flags;
-    const all_layers = sparse_qtree_nodes[i].Node.layer;
-    let layer: DatesLayer;
-    if (all_layers === undefined) {
-      layer = [
-        {
-          date: 0,
-          datedTileEpoch: 0,
-          provider: 0,
-        },
-      ];
-    } else {
-      // 一般会有 2 个Layer LAYER_TYPE_IMAGERY 和 LAYER_TYPE_IMAGERY_HISTORY
-      // 特殊的只有 LAYER_TYPE_IMAGERY_HISTORY
-      // 取最后一个
-      layer = all_layers.at(-1).datesLayer.datedTile;
+    const node = sparse_qtree_nodes[i].Node;
+    if (node.layer) {
+      const item = new GEHistoryTileInfo(flags, node.layer);
+      nodes.push(item);
     }
-    const item = new GEHistoryTileInfo(flags, layer);
-    nodes.push(item);
   }
   return nodes;
 }
 
-// Bitmask for checking tile properties
-const childrenBitmasks = [0x01, 0x02, 0x04, 0x08];
-const anyChildBitmask = 0x0f;
-const cacheFlagBitmask = 0x10; // True if there is a child subtree
-const imageBitmask = 0x40;
-const terrainBitmask = 0x80;
-
-export class GEHistoryTileInfo {
-  bitfield: number;
-  history_layer: DatesLayer;
-
-  constructor(bitfield: number, history_layer: DatesLayer) {
-    this.bitfield = bitfield;
-    this.history_layer = history_layer;
-  }
-  // 是否含有子节点
-  has_subtree(): boolean {
-    return isBitSet(this.bitfield, cacheFlagBitmask);
-  }
-  // 是否含有图像
-  has_imagery(): boolean {
-    return isBitSet(this.bitfield, imageBitmask);
-  }
-  // 是否含有地形数据
-  has_terrain(): boolean {
-    return isBitSet(this.bitfield, terrainBitmask);
-  }
-  // 是否有任意子节点
-  has_children(): boolean {
-    return isBitSet(this.bitfield, anyChildBitmask);
-  }
-  // 是否有指定的子节点
-  has_child(index: number) {
-    return isBitSet(this.bitfield, childrenBitmasks[index]);
-  }
-}
-
-type HistoryTilesInfo = {
-  [key: string]: GEHistoryTileInfo | null;
-};
-
 export async function parse_history_qtree(
   qtree_data: Uint8Array,
-  quad_key_short: string
+  quad_key: string
 ): Promise<HistoryTilesInfo> {
   const nodes = await get_nodes_from_qtree(qtree_data);
   const tiles_info: HistoryTilesInfo = {};
@@ -211,11 +142,11 @@ export async function parse_history_qtree(
 
   // 处理根节点
   const root = nodes[index++];
-  if (quad_key_short === "") {
+  if (quad_key === "") {
     populate_tiles("", root, 1); // 根节点从 level 1 开始
   } else {
-    tiles_info[quad_key_short] = root; // 非根节点直接设置
-    populate_tiles(quad_key_short, root, 0); // 从 level 0 开始
+    tiles_info[quad_key] = root; // 非根节点直接设置
+    populate_tiles(quad_key, root, 0); // 从 level 0 开始
   }
 
   return tiles_info;
@@ -257,26 +188,34 @@ export function number_to_date(date_number: number) {
     .padStart(2, "0")}`;
 }
 
+/**
+ * 获取指定 quad 的历史影像信息
+ *
+ * @param {QuadKey} quad  QuadKey
+ * @param version 版本
+ * @param key 密钥
+ * @returns {Promise<Layer[]>} 瓦片的 Node 信息
+ */
 export async function get_history_layer(
   quad: QuadKey,
   version: number,
   key: Uint8Array
-) {
+): Promise<Layer[]> {
   const qtree_data = await get_his_qtree(quad.parent_quad_key, version, key);
   const tiles = await parse_history_qtree(qtree_data, quad.parent_quad_key);
   const current_tile = tiles[quad.quad_key];
   if (current_tile != null) {
-    return current_tile.history_layer;
+    return current_tile.layer;
   } else {
     throw Error("Filed to get history layer");
   }
 }
 
-export function get_history_layer_dates(layer: DatesLayer) {
-  return layer
-    .filter((item) => item.date >= 10000)
-    .map((item) => number_to_date(item.date));
-}
+// export function get_history_layer_dates(layer: DatesLayer) {
+//   return layer
+//     .filter((item) => item.date >= 10000)
+//     .map((item) => number_to_date(item.date));
+// }
 
 export async function query_point(
   lat: number,

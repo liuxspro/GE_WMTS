@@ -1,14 +1,19 @@
-import { inflate } from "jsr:@deno-library/compress";
 import { array_is_equal } from "jsr:@liuxspro/utils";
-import { decode_data } from "./decode.ts";
+import { decode_qtree_data } from "./decode.ts";
+import { GETileInfo } from "./info.ts";
+import { create_cache_dir } from "./cache.ts";
+
+await create_cache_dir();
+
+const kv = await Deno.openKv("./Cache/Qtree.db");
 
 /**
- *
+ * 请求原始的 qtree 数据
  * @param {string} quad_key 完整的四叉树编码
  * @param {number} version 当前版本
  * @returns {Promise<Uint8Array>} 原始 qtree packet 数据
  */
-export async function get_qtree_rawdata(
+export async function fetch_qtree_rawdata(
   quad_key: string,
   version: number
 ): Promise<Uint8Array> {
@@ -22,111 +27,13 @@ export async function get_qtree(
   version: number,
   key: Uint8Array
 ) {
-  // 检查该 qtree 文件是否已经被缓存
-  const qtree_file_name = `q2-${quad_key}-q.${version}`;
-  const qtree_file_path = `Cache/Qtrees/Earth/${version}/${qtree_file_name}`;
-  try {
-    const qtree_rawdata = await Deno.readFile(qtree_file_path);
-    return decrypt_qtree_data(qtree_rawdata, key);
-  } catch (_err) {
-    // 如果不存在就请求，然后保存
-    const qtree_rawdata = await get_qtree_rawdata(quad_key, version);
-    Deno.writeFile(qtree_file_path, qtree_rawdata);
-    return decrypt_qtree_data(qtree_rawdata, key);
-  }
-}
-
-// See: https://github.com/google/earthenterprise/blob/master/earth_enterprise/src/keyhole/earth_client_protobuf/quadtreeset.protodevel
-// See: https://github.com/CesiumGS/cesium/blob/main/packages/engine/Source/Workers/decodeGoogleEarthEnterprisePacket.js
-
-// Bitmask for checking tile properties
-const childrenBitmasks = [0x01, 0x02, 0x04, 0x08];
-const anyChildBitmask = 0x0f;
-const cacheFlagBitmask = 0x10; // True if there is a child subtree
-const imageBitmask = 0x40;
-const terrainBitmask = 0x80;
-
-/**
- * ## 解码 Qtree 数据
- * 先用密钥解密，解密后是 zlib 压缩后的数据
- * 再解压数据得到原始数据
- * @param encrypted_data 请求得到的原始数据
- * @param key 密钥
- * @returns 解码后的数据包
- */
-export function decrypt_qtree_data(
-  encrypted_data: Uint8Array,
-  key: Uint8Array
-): Uint8Array {
-  const zlib_data = decode_data(encrypted_data, key);
-  const decompressed = inflate(zlib_data.slice(8));
-  return decompressed;
-}
-
-/**
- * 检查 bits 中是否有任何与 mask 对应的位被设置（即是否为 1）。
- * 如果 bits 和 mask 的按位与结果不为 0，说明至少有一个对应的位被设置。
- *
- * @param bit - 一个整数，表示要检查的二进制位。
- * @param mask - 一个掩码，用于指定要检查的位。
- * @returns 如果 bits 中与 mask 对应的位有任何一个被设置，返回 true；否则返回 false。
- *
- * @example
- * // bits: 0101 0000 mask: 0b01000000（0x40）
- * // 检查二进制数 第 7 位是是否为 1
- * console.log(isBitSet(0b01010000, 0b01000000)); // true
- * console.log(isBitSet(0x50, 0x40)); // true
- * console.log(isBitSet(80, 64)); // true
- * console.log(isBitSet(0b00010000, 0b01000000)); // false
- *
- */
-export function isBitSet(bits: number, mask: number) {
-  return (bits & mask) !== 0;
-}
-
-/**
- * Qtree 数据中的 Tile 节点数据
- *
- * 每个节点占用 32 字节
- * 第 1 个字节为 Bitfield 用于识别节点图像类型
- * 采用的是位掩码设计
- */
-export class GETileInfo {
-  bitfield: number;
-  cnode_version: number;
-  imagery_version: number;
-  terrain_version: number;
-
-  constructor(
-    bitfield: number,
-    cnode_version: number,
-    imagery_version: number,
-    terrain_version: number
-  ) {
-    this.bitfield = bitfield;
-    this.cnode_version = cnode_version;
-    this.imagery_version = imagery_version;
-    this.terrain_version = terrain_version;
-  }
-  // 是否含有子节点
-  has_subtree(): boolean {
-    return isBitSet(this.bitfield, cacheFlagBitmask);
-  }
-  // 是否含有图像
-  has_imagery(): boolean {
-    return isBitSet(this.bitfield, imageBitmask);
-  }
-  // 是否含有地形数据
-  has_terrain(): boolean {
-    return isBitSet(this.bitfield, terrainBitmask);
-  }
-  // 是否有任意子节点
-  has_children(): boolean {
-    return isBitSet(this.bitfield, anyChildBitmask);
-  }
-  // 是否有指定的子节点
-  has_child(index: number) {
-    return isBitSet(this.bitfield, childrenBitmasks[index]);
+  const entry = await kv.get(["Earth", version, quad_key]);
+  if (entry.value) {
+    return decode_qtree_data(entry.value as Uint8Array, key);
+  } else {
+    const qtree_rawdata = await fetch_qtree_rawdata(quad_key, version);
+    await kv.set(["Earth", version, quad_key], qtree_rawdata);
+    return decode_qtree_data(qtree_rawdata, key);
   }
 }
 
@@ -161,7 +68,7 @@ export function parse_qtree_node(node_data: Uint8Array): GETileInfo {
 /**
  * 解析 Qtree 数据包
  * @param qtree_data
- * @returns GETileInfo[] GETileInfo 数组
+ * @returns {GETileInfo[]} GETileInfo 数组
  */
 export function get_nodes_from_qtree(qtree_data: Uint8Array): GETileInfo[] {
   const magic = new Uint8Array([0x2d, 0x7e, 0x00, 0x00]);

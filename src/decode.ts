@@ -1,5 +1,6 @@
+import { inflate } from "jsr:@deno-library/compress";
 /**
- * 使用密钥解密数据
+ * ## 使用密钥解密数据
  *
  * @param {Uint8Array} encrypted_data - 待解密的原始数据（Uint8Array类型）
  * @param {Uint8Array} key - 解密密钥（从DBroot文件中获取，长度为1024字节）
@@ -40,4 +41,21 @@ export function decode_data(
     }
   }
   return decrypted;
+}
+
+/**
+ * ## 解码 Qtree 数据
+ * 先用密钥解密，解密后是 zlib 压缩后的数据
+ * 再解压数据得到原始数据
+ * @param encrypted_data 请求得到的原始 Qtree数据
+ * @param key 密钥
+ * @returns 解码后的数据包
+ */
+export function decode_qtree_data(
+  encrypted_data: Uint8Array,
+  key: Uint8Array
+): Uint8Array {
+  const zlib_data = decode_data(encrypted_data, key);
+  const decompressed = inflate(zlib_data.slice(8));
+  return decompressed;
 }
