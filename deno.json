@@ -1,7 +1,7 @@
 {
   "tasks": {
     "dev": "deno run -A --unstable-kv --watch ./src/server.ts",
-    "test": "deno test -A",
+    "test": "deno test -A --unstable-kv",
     "build": "deno compile -A --unstable-kv --include ./data -o ./dist/gewmts.exe ./src/server.ts"
   },
   "imports": {
