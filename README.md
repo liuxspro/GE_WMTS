@@ -23,7 +23,21 @@ deno task dev
 
 QGIS 加载效果
 
-![](data/screenshot.jpg)
+![](docs/screenshot.jpg)
+
+效果对比
+
+|           Google Map Satellite           |                 Google Earth                  |
+| :--------------------------------------: | :--------------------------------------: |
+| ![](docs/compare_1.jpg) | ![](docs/compare_2.jpg) |
+
+
+
+## 部署到 Deno Deploy
+
+```bash
+deployctl deploy --entrypoint .\src\server.ts
+```
 
 ## 参考资料
 
