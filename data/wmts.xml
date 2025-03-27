@@ -8,7 +8,7 @@
   version="1.0.0">
   <ows:ServiceIdentification>
     <ows:Title>Google Earth</ows:Title>
-    <ows:Abstract>bGoogle Earth 最新影像</ows:Abstract>
+    <ows:Abstract>Google Earth 最新影像</ows:Abstract>
     <ows:ServiceType>OGC WMTS</ows:ServiceType>
     <ows:ServiceTypeVersion>1.0.0</ows:ServiceTypeVersion>
     <ows:Fees>none</ows:Fees>
