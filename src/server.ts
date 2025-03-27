@@ -104,7 +104,7 @@ router.get("/ge/wmts", (ctx) => {
   const data = Deno.readFileSync(wmts_path);
   let host = "http://localhost:8080";
   if (isDenoDeploy()) {
-    host = "https://ge.deno.dev";
+    host = "https://gewmts.deno.dev";
   }
   let xml = decoder.decode(data);
   xml = xml.replace("{{ HOST }}", host);
