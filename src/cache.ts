@@ -1,6 +1,6 @@
 import { dirname } from "jsr:@std/path";
 
-export async function create_cache_dir() {
+async function _create_cache_dir() {
   try {
     await Deno.mkdir("Cache", { recursive: true });
   } catch (err) {
@@ -12,7 +12,7 @@ export async function create_cache_dir() {
   }
 }
 
-export async function create_qtree_dir(version: number) {
+async function _create_qtree_dir(version: number) {
   try {
     await Deno.mkdir(`Cache/Qtrees/Earth/${version}`, { recursive: true });
   } catch (err) {
@@ -24,7 +24,7 @@ export async function create_qtree_dir(version: number) {
   }
 }
 
-export async function create_his_qtree_dir(version: number) {
+async function _create_his_qtree_dir(version: number) {
   try {
     await Deno.mkdir(`Cache/Qtrees/History/${version}`, { recursive: true });
   } catch (err) {

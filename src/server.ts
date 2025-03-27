@@ -1,12 +1,8 @@
 import { Application } from "jsr:@oak/oak/application";
 import { Router } from "jsr:@oak/oak/router";
-import { get_tile, get_version_and_key } from "./ge.ts";
-import {
-  create_cache_dir,
-  create_qtree_dir,
-  create_his_qtree_dir,
-  get_current_dir,
-} from "./cache.ts";
+import { get_tile } from "./ge.ts";
+import { get_version_and_key } from "./version.ts";
+import { get_current_dir } from "./cache.ts";
 import { get_hisversion, get_history_tile, query_point } from "./history.ts";
 import { join, dirname } from "jsr:@std/path";
 
@@ -20,21 +16,18 @@ const data_dir = join(root_dir, "data");
 const error_png_path = join(data_dir, "error.png");
 const wmts_path = join(data_dir, "wmts.xml");
 const wmts_history_path = join(data_dir, "wmts.history.xml");
-
-// 创建缓存文件夹
-await create_cache_dir();
+const error_png = Deno.readFileSync(error_png_path);
 
 // 获取当前版本和密钥
 const { version, key } = await get_version_and_key();
-await create_qtree_dir(version);
-
 const his_version = await get_hisversion();
-await create_his_qtree_dir(his_version);
-
-const error_png = Deno.readFileSync(error_png_path);
 
 console.log(`Current Version: \nEarth:${version} History: ${his_version}`);
 console.log("初始化完成!\n");
+
+function isDenoDeploy(): boolean {
+  return Deno.env.has("DENO_DEPLOYMENT_ID");
+}
 
 const router = new Router();
 router.get("/ge/:z/:x/:y", async (ctx) => {
@@ -109,7 +102,13 @@ router.get("/ge/wmts", (ctx) => {
   ctx.response.type = "text/xml;charset=UTF-8";
   const decoder = new TextDecoder("utf-8");
   const data = Deno.readFileSync(wmts_path);
-  ctx.response.body = decoder.decode(data);
+  let host = "http://localhost:8080";
+  if (isDenoDeploy()) {
+    host = "https://ge.deno.dev";
+  }
+  let xml = decoder.decode(data);
+  xml = xml.replace("{{ HOST }}", host);
+  ctx.response.body = xml;
 });
 
 router.get("/ge/his/wmts", (ctx) => {
@@ -129,6 +128,10 @@ router.get("/ge/his/wmts", (ctx) => {
   xml = xml.replace("{{ LC }}", lower);
   xml = xml.replace("{{ UC }}", upper);
   ctx.response.body = xml;
+});
+
+router.get("/", (ctx) => {
+  ctx.response.body = "On Deno Deploy 💖";
 });
 
 const app = new Application();

@@ -7,7 +7,7 @@ import {
   Layer,
 } from "./info.ts";
 import { QuadKey, gcs_to_quad } from "./quad.ts";
-import { decrypt_tile } from "./ge.ts";
+import { decode_tile } from "./decode.ts";
 
 export async function get_his_dbroot() {
   const url = "http://khmdb.google.com/dbRoot.v5?db=tm&hl=zh-hans&gl=hk";
@@ -163,7 +163,7 @@ export async function get_history_tile(
   const quad = new QuadKey(x, y, z);
   const tile_url = `https://khmdb.google.com/flatfile?db=tm&f1-${quad.quad_key}-i.${version}-${date}`;
   const raw_tile_data = await (await fetch(tile_url)).bytes();
-  const decrypted_tile_data = decrypt_tile(raw_tile_data, key);
+  const decrypted_tile_data = decode_tile(raw_tile_data, key);
   return decrypted_tile_data;
 }
 

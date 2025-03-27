@@ -1,4 +1,6 @@
 import { inflate } from "jsr:@deno-library/compress";
+import { array_is_equal } from "jsr:@liuxspro/utils";
+
 /**
  * ## 使用密钥解密数据
  *
@@ -58,4 +60,22 @@ export function decode_qtree_data(
   const zlib_data = decode_data(encrypted_data, key);
   const decompressed = inflate(zlib_data.slice(8));
   return decompressed;
+}
+
+/**
+ * 解密瓦片数据
+ * @param tile_data 请求得到的原始瓦片数据
+ * @param key 密钥
+ * @returns 返回解密后的瓦片数据
+ */
+export function decode_tile(
+  tile_data: Uint8Array,
+  key: Uint8Array
+): Uint8Array | null {
+  const header = new Uint8Array([0x07, 0x91, 0xef, 0xa6]);
+  // 判断一下文件头
+  if (array_is_equal(tile_data.slice(0, 4), header)) {
+    return decode_data(tile_data, key);
+  }
+  return null;
 }

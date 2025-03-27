@@ -3,10 +3,12 @@
   xmlns:ows="http://www.opengis.net/ows/1.1"
   xmlns:xlink="http://www.w3.org/1999/xlink"
   xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-  xmlns:gml="http://www.opengis.net/gml" xsi:schemaLocation="http://www.opengis.net/wmts/1.0 http://schemas.opengis.net/wmts/1.0/wmtsGetCapabilities_response.xsd" version="1.0.0">
+  xmlns:gml="http://www.opengis.net/gml"
+  xsi:schemaLocation="http://www.opengis.net/wmts/1.0 http://schemas.opengis.net/wmts/1.0/wmtsGetCapabilities_response.xsd"
+  version="1.0.0">
   <ows:ServiceIdentification>
-    <ows:Title>Debug Tile</ows:Title>
-    <ows:Abstract>Debug Tile by liuxspro</ows:Abstract>
+    <ows:Title>Google Earth</ows:Title>
+    <ows:Abstract>bGoogle Earth 最新影像</ows:Abstract>
     <ows:ServiceType>OGC WMTS</ows:ServiceType>
     <ows:ServiceTypeVersion>1.0.0</ows:ServiceTypeVersion>
     <ows:Fees>none</ows:Fees>
@@ -14,8 +16,8 @@
   </ows:ServiceIdentification>
   <Contents>
     <Layer>
-      <ows:Title>谷歌地球影像</ows:Title>
-      <ows:Abstract>谷歌地球影像</ows:Abstract>
+      <ows:Title>谷歌地球最新影像</ows:Title>
+      <ows:Abstract>谷歌地球最新影像</ows:Abstract>
       <ows:WGS84BoundingBox>
         <ows:LowerCorner>-180.0 -85.051129</ows:LowerCorner>
         <ows:UpperCorner>180.0 85.051129</ows:UpperCorner>
@@ -28,7 +30,8 @@
       <TileMatrixSetLink>
         <TileMatrixSet>default028mm</TileMatrixSet>
       </TileMatrixSetLink>
-      <ResourceURL format="image/png" resourceType="tile" template="http://localhost:8080/ge/{TileMatrix}/{TileCol}/{TileRow}" />
+      <ResourceURL format="image/png" resourceType="tile"
+        template="{{ HOST }}/ge/{TileMatrix}/{TileCol}/{TileRow}" />
     </Layer>
     <TileMatrixSet>
       <ows:Identifier>default028mm</ows:Identifier>

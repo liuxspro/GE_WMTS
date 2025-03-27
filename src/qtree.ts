@@ -1,11 +1,8 @@
 import { array_is_equal } from "jsr:@liuxspro/utils";
 import { decode_qtree_data } from "./decode.ts";
 import { GETileInfo } from "./info.ts";
-import { create_cache_dir } from "./cache.ts";
 
-await create_cache_dir();
-
-const kv = await Deno.openKv("./Cache/Qtree.db");
+const kv = await Deno.openKv();
 
 /**
  * 请求原始的 qtree 数据
@@ -22,12 +19,21 @@ export async function fetch_qtree_rawdata(
   return data;
 }
 
+/**
+ * 获取 qtree 信息(有缓存)
+ * @param quad_key quad key
+ * @param version qtree version
+ * @param key 密钥
+ * @returns
+ */
 export async function get_qtree(
   quad_key: string,
   version: number,
   key: Uint8Array
 ) {
   const entry = await kv.get(["Earth", version, quad_key]);
+  // 如果 KV 中有，直接解密一下返回
+  // 没有就抓取并缓存到 KV 中
   if (entry.value) {
     return decode_qtree_data(entry.value as Uint8Array, key);
   } else {
