@@ -19,11 +19,19 @@ const wmts_history_path = join(data_dir, "wmts.history.xml");
 const error_png = Deno.readFileSync(error_png_path);
 
 // 获取当前版本和密钥
-const { version, key } = await get_version_and_key();
-const his_version = await get_hisversion();
+let { version, key } = await get_version_and_key();
+let his_version = await get_hisversion();
 
-console.log(`Current Version: \nEarth:${version} History: ${his_version}`);
+console.log(`[Init] [Get Version]: Earth:${version} History: ${his_version}`);
 console.log("初始化完成!\n");
+
+Deno.cron("sample cron", { hour: { every: 1 } }, async () => {
+  ({ version, key } = await get_version_and_key());
+  his_version = await get_hisversion();
+  console.log(
+    `[Cron Job] [Get Version]: Earth:${version} History: ${his_version}`
+  );
+});
 
 function isDenoDeploy(): boolean {
   return Deno.env.has("DENO_DEPLOYMENT_ID");

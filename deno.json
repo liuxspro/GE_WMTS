@@ -1,6 +1,6 @@
 {
   "tasks": {
-    "dev": "deno run -A --unstable-kv --watch ./src/server.ts",
+    "dev": "deno run -A --unstable-kv --unstable-cron --watch ./src/server.ts",
     "test": "deno test -A --unstable-kv",
     "build": "deno compile -A --unstable-kv --include ./data -o ./dist/gewmts.exe ./src/server.ts"
   },
