@@ -25,7 +25,7 @@ let his_version = await get_hisversion();
 console.log(`[Init] [Get Version]: Earth:${version} History: ${his_version}`);
 console.log("初始化完成!\n");
 
-Deno.cron("sample cron", { hour: { every: 1 } }, async () => {
+Deno.cron("get version", "0 * * * *", async () => {
   ({ version, key } = await get_version_and_key());
   his_version = await get_hisversion();
   console.log(
