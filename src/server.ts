@@ -8,6 +8,10 @@ import { join, dirname } from "jsr:@std/path";
 
 console.log("初始化...");
 
+Deno.cron("sample cron", "*/10 * * * *", () => {
+  console.log("cron job executed every 10 minutes");
+});
+
 // 获取当前脚本的绝对路径
 const current_dir = get_current_dir();
 const root_dir = dirname(current_dir);
