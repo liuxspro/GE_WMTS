@@ -5,12 +5,9 @@ import { get_version_and_key } from "./version.ts";
 import { get_current_dir } from "./cache.ts";
 import { get_hisversion, get_history_tile, query_point } from "./history.ts";
 import { join, dirname } from "jsr:@std/path";
+import { create_cap } from "./wmts.ts";
 
 console.log("初始化...");
-
-Deno.cron("sample cron", "*/10 * * * *", () => {
-  console.log("cron job executed every 10 minutes");
-});
 
 // 获取当前脚本的绝对路径
 const current_dir = get_current_dir();
@@ -18,7 +15,6 @@ const root_dir = dirname(current_dir);
 const data_dir = join(root_dir, "data");
 // static file path
 const error_png_path = join(data_dir, "error.png");
-const wmts_path = join(data_dir, "wmts.xml");
 const wmts_history_path = join(data_dir, "wmts.history.xml");
 const error_png = Deno.readFileSync(error_png_path);
 
@@ -26,9 +22,10 @@ const error_png = Deno.readFileSync(error_png_path);
 let { version, key } = await get_version_and_key();
 let his_version = await get_hisversion();
 
-console.log(`[Init] [Get Version]: Earth:${version} History: ${his_version}`);
+console.log(`[Init] [Get Version]: Earth: ${version} History: ${his_version}`);
 console.log("初始化完成!\n");
 
+// 每小时更新版本
 Deno.cron("get version", "0 * * * *", async () => {
   ({ version, key } = await get_version_and_key());
   his_version = await get_hisversion();
@@ -112,14 +109,11 @@ router.get("/ge/his/query", async (ctx) => {
 
 router.get("/ge/wmts", (ctx) => {
   ctx.response.type = "text/xml;charset=UTF-8";
-  const decoder = new TextDecoder("utf-8");
-  const data = Deno.readFileSync(wmts_path);
   let host = "http://localhost:8080";
   if (isDenoDeploy()) {
     host = "https://gewmts.deno.dev";
   }
-  let xml = decoder.decode(data);
-  xml = xml.replace("{{ HOST }}", host);
+  const xml = create_cap(`${host}/ge/{z}/{x}/{y}`);
   ctx.response.body = xml;
 });
 

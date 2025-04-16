@@ -5,6 +5,7 @@
     "build": "deno compile -A --unstable-kv --include ./data -o ./dist/gewmts.exe ./src/server.ts"
   },
   "imports": {
+    "@liuxspro/capgen": "jsr:@liuxspro/capgen@^0.1.0",
     "@std/assert": "jsr:@std/assert@1",
     "protobufjs": "npm:protobufjs@^7.4.0"
   },
