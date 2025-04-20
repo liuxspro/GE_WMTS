@@ -3,9 +3,10 @@ import { Router } from "jsr:@oak/oak/router";
 import { get_tile } from "./ge.ts";
 import { get_version_and_key } from "./version.ts";
 import { get_current_dir } from "./cache.ts";
-import { get_hisversion, get_history_tile, query_point } from "./history.ts";
-import { join, dirname } from "jsr:@std/path";
-import { create_cap } from "./wmts.ts";
+import { get_history_tile, get_hisversion, query_point } from "./history.ts";
+import { dirname, join } from "jsr:@std/path";
+import { create_ge_cap, create_ge_his_cap } from "./wmts.ts";
+import { GeoPoint } from "@liuxspro/capgen";
 
 console.log("初始化...");
 
@@ -15,7 +16,7 @@ const root_dir = dirname(current_dir);
 const data_dir = join(root_dir, "data");
 // static file path
 const error_png_path = join(data_dir, "error.png");
-const wmts_history_path = join(data_dir, "wmts.history.xml");
+// const wmts_history_path = join(data_dir, "wmts.history.xml");
 const error_png = Deno.readFileSync(error_png_path);
 
 // 获取当前版本和密钥
@@ -30,7 +31,7 @@ Deno.cron("get version", "0 * * * *", async () => {
   ({ version, key } = await get_version_and_key());
   his_version = await get_hisversion();
   console.log(
-    `[Cron Job] [Get Version]: Earth:${version} History: ${his_version}`
+    `[Cron Job] [Get Version]: Earth:${version} History: ${his_version}`,
   );
 });
 
@@ -77,7 +78,7 @@ router.get("/ge/history/:z/:x/:y", async (ctx) => {
     nz,
     versionNumber,
     date,
-    key
+    key,
   );
 
   if (tile_data) {
@@ -101,7 +102,7 @@ router.get("/ge/his/query", async (ctx) => {
     lon_number,
     level_number,
     his_version,
-    key
+    key,
   );
   ctx.response.type = "text/json";
   ctx.response.body = layers;
@@ -113,7 +114,7 @@ router.get("/ge/wmts", (ctx) => {
   if (isDenoDeploy()) {
     host = "https://gewmts.deno.dev";
   }
-  const xml = create_cap(`${host}/ge/{z}/{x}/{y}`);
+  const xml = create_ge_cap(`${host}/ge/{z}/{x}/{y}`);
   ctx.response.body = xml;
 });
 
@@ -121,18 +122,16 @@ router.get("/ge/his/wmts", (ctx) => {
   const d = ctx.request.url.searchParams.get("d") || "";
   const v = ctx.request.url.searchParams.get("v") || "";
   const lower = ctx.request.url.searchParams.get("l") || "-180.0 -85.051129";
+  let [lon, lat] = lower.split(" ").map(Number);
+  const lower_point: GeoPoint = { lon, lat };
   const upper = ctx.request.url.searchParams.get("u") || "180.0 85.051129";
-
+  [lon, lat] = upper.split(" ").map(Number);
+  const upper_point = { lon, lat };
+  const bbox: [GeoPoint, GeoPoint] = [lower_point, upper_point];
+  const url =
+    `http://localhost:8080/ge/history/{TileMatrix}/{TileCol}/{TileRow}?d=${d}&amp;v=${v}`;
+  const xml = create_ge_his_cap(bbox, url);
   ctx.response.type = "text/xml;charset=UTF-8";
-  const decoder = new TextDecoder("utf-8");
-  const data = Deno.readFileSync(wmts_history_path);
-  let xml = decoder.decode(data);
-  xml = xml.replace(
-    "{{ URL }}",
-    `http://localhost:8080/ge/history/{TileMatrix}/{TileCol}/{TileRow}?d=${d}&amp;v=${v}`
-  );
-  xml = xml.replace("{{ LC }}", lower);
-  xml = xml.replace("{{ UC }}", upper);
   ctx.response.body = xml;
 });
 
