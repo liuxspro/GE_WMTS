@@ -27,7 +27,7 @@ export function create_ge_cap(url: string) {
     "GoogleEarthLatest",
     mercator_bbox,
     "WorldCRS84Quad",
-    url,
+    url
   );
   return generate_capabilities(service, [ge_layer], [ge_matrix]);
 }
@@ -39,9 +39,11 @@ export function create_ge_his_cap(bbox: [GeoPoint, GeoPoint], url: string) {
     "GoogleEarthHistorical",
     bbox,
     "WorldCRS84Quad",
-    url,
+    url
   );
-  return generate_capabilities(service, [layer], [
-    default_matrix.WorldCRS84Quad,
-  ]);
+  return generate_capabilities(
+    service,
+    [layer],
+    [default_matrix.WorldCRS84Quad]
+  );
 }

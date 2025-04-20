@@ -16,7 +16,6 @@ const root_dir = dirname(current_dir);
 const data_dir = join(root_dir, "data");
 // static file path
 const error_png_path = join(data_dir, "error.png");
-// const wmts_history_path = join(data_dir, "wmts.history.xml");
 const error_png = Deno.readFileSync(error_png_path);
 
 // 获取当前版本和密钥
@@ -31,12 +30,20 @@ Deno.cron("get version", "0 * * * *", async () => {
   ({ version, key } = await get_version_and_key());
   his_version = await get_hisversion();
   console.log(
-    `[Cron Job] [Get Version]: Earth:${version} History: ${his_version}`,
+    `[Cron Job] [Get Version]: Earth:${version} History: ${his_version}`
   );
 });
 
 function isDenoDeploy(): boolean {
   return Deno.env.has("DENO_DEPLOYMENT_ID");
+}
+
+function get_host(): string {
+  let host = "http://localhost:8080";
+  if (isDenoDeploy()) {
+    host = "https://gewmts.deno.dev";
+  }
+  return host;
 }
 
 const router = new Router();
@@ -70,16 +77,9 @@ router.get("/ge/history/:z/:x/:y", async (ctx) => {
     return;
   }
 
-  const versionNumber = parseInt(version || "0", 10);
+  const version_n = parseInt(version || "0", 10);
 
-  const tile_data = await get_history_tile(
-    nx,
-    ny,
-    nz,
-    versionNumber,
-    date,
-    key,
-  );
+  const tile_data = await get_history_tile(nx, ny, nz, version_n, date, key);
 
   if (tile_data) {
     ctx.response.type = "image/jpg";
@@ -90,6 +90,10 @@ router.get("/ge/history/:z/:x/:y", async (ctx) => {
   }
 });
 
+/**
+ * 根据经纬度和层级查询历史影像列表
+ * http://localhost:8080/ge/his/query?lon=117.11919576379941&lat=34.25658580862091&level=18
+ */
 router.get("/ge/his/query", async (ctx) => {
   const lon = ctx.request.url.searchParams.get("lon") || "";
   const lat = ctx.request.url.searchParams.get("lat") || "";
@@ -102,7 +106,7 @@ router.get("/ge/his/query", async (ctx) => {
     lon_number,
     level_number,
     his_version,
-    key,
+    key
   );
   ctx.response.type = "text/json";
   ctx.response.body = layers;
@@ -110,11 +114,7 @@ router.get("/ge/his/query", async (ctx) => {
 
 router.get("/ge/wmts", (ctx) => {
   ctx.response.type = "text/xml;charset=UTF-8";
-  let host = "http://localhost:8080";
-  if (isDenoDeploy()) {
-    host = "https://gewmts.deno.dev";
-  }
-  const xml = create_ge_cap(`${host}/ge/{z}/{x}/{y}`);
+  const xml = create_ge_cap(`${get_host()}/ge/{z}/{x}/{y}`);
   ctx.response.body = xml;
 });
 
@@ -128,8 +128,8 @@ router.get("/ge/his/wmts", (ctx) => {
   [lon, lat] = upper.split(" ").map(Number);
   const upper_point = { lon, lat };
   const bbox: [GeoPoint, GeoPoint] = [lower_point, upper_point];
-  const url =
-    `http://localhost:8080/ge/history/{TileMatrix}/{TileCol}/{TileRow}?d=${d}&amp;v=${v}`;
+  console.log(d, v, lower, upper);
+  const url = `${get_host()}/ge/history/{z}/{x}/{y}?d=${d}&v=${v}`;
   const xml = create_ge_his_cap(bbox, url);
   ctx.response.type = "text/xml;charset=UTF-8";
   ctx.response.body = xml;
