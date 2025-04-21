@@ -128,7 +128,6 @@ router.get("/ge/his/wmts", (ctx) => {
   [lon, lat] = upper.split(" ").map(Number);
   const upper_point = { lon, lat };
   const bbox: [GeoPoint, GeoPoint] = [lower_point, upper_point];
-  console.log(d, v, lower, upper);
   const url = `${get_host()}/ge/history/{z}/{x}/{y}?d=${d}&v=${v}`;
   const xml = create_ge_his_cap(bbox, url);
   ctx.response.type = "text/xml;charset=UTF-8";
