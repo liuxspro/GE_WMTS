@@ -9,6 +9,8 @@ import {
 import { QuadKey, gcs_to_quad } from "./quad.ts";
 import { decode_tile } from "./decode.ts";
 
+const kv = await Deno.openKv();
+
 export async function get_his_dbroot() {
   const url = "http://khmdb.google.com/dbRoot.v5?db=tm&hl=zh-hans&gl=hk";
   const data = await (await fetch(url)).bytes();
@@ -53,15 +55,12 @@ export async function get_his_qtree(
   key: Uint8Array
 ) {
   // 检查该 qtree 文件是否已经被缓存
-  const qtree_file_name = `qp-${quad_key}-q.${version}`;
-  const qtree_file_path = `Cache/Qtrees/History/${version}/${qtree_file_name}`;
-  try {
-    const qtree_rawdata = await Deno.readFile(qtree_file_path);
-    return decode_qtree_data(qtree_rawdata, key);
-  } catch (_err) {
-    // 如果不存在就请求，然后保存
+  const entry = await kv.get(["History", version, quad_key]);
+  if (entry.value) {
+    return decode_qtree_data(entry.value as Uint8Array, key);
+  } else {
     const qtree_rawdata = await fetch_his_qtree_rawdata(quad_key, version);
-    Deno.writeFile(qtree_file_path, qtree_rawdata);
+    await kv.set(["History", version, quad_key], qtree_rawdata);
     return decode_qtree_data(qtree_rawdata, key);
   }
 }
