@@ -17,7 +17,7 @@ const service: Service = {
 
 const ge_matrix: TileMatrixSet = {
   ...default_matrix.WorldCRS84Quad,
-  tile_matrixs: generate_crs84_tile_matrixs(2, 21),
+  tile_matrixs: generate_crs84_tile_matrixs(2, 20),
 };
 
 export function create_ge_cap(url: string) {
