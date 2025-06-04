@@ -30,7 +30,7 @@ Deno.cron("get version", "0 * * * *", async () => {
   ({ version, key } = await get_version_and_key());
   his_version = await get_hisversion();
   console.log(
-    `[Cron Job] [Get Version]: Earth:${version} History: ${his_version}`
+    `[Cron Job] [Get Version]: Earth:${version} History: ${his_version}`,
   );
 });
 
@@ -47,7 +47,7 @@ function get_host(): string {
 }
 
 const router = new Router();
-router.get("/ge/:z/:x/:y", async (ctx) => {
+router.get("/:z/:x/:y", async (ctx) => {
   const { z, x, y } = ctx.params;
   const nz = parseInt(z);
   const nx = parseInt(x);
@@ -63,7 +63,7 @@ router.get("/ge/:z/:x/:y", async (ctx) => {
   }
 });
 
-router.get("/ge/history/:z/:x/:y", async (ctx) => {
+router.get("/history/:z/:x/:y", async (ctx) => {
   const { z, x, y } = ctx.params;
   const nz = parseInt(z);
   const nx = parseInt(x);
@@ -94,7 +94,7 @@ router.get("/ge/history/:z/:x/:y", async (ctx) => {
  * 根据经纬度和层级查询历史影像列表
  * http://localhost:8080/ge/his/query?lon=117.11919576379941&lat=34.25658580862091&level=18
  */
-router.get("/ge/his/query", async (ctx) => {
+router.get("/his/query", async (ctx) => {
   const lon = ctx.request.url.searchParams.get("lon") || "";
   const lat = ctx.request.url.searchParams.get("lat") || "";
   const level = ctx.request.url.searchParams.get("level") || "";
@@ -106,19 +106,19 @@ router.get("/ge/his/query", async (ctx) => {
     lon_number,
     level_number,
     his_version,
-    key
+    key,
   );
   ctx.response.type = "text/json";
   ctx.response.body = layers;
 });
 
-router.get("/ge/wmts", (ctx) => {
+router.get("/wmts", (ctx) => {
   ctx.response.type = "text/xml;charset=UTF-8";
-  const xml = create_ge_cap(`${get_host()}/ge/{z}/{x}/{y}`);
+  const xml = create_ge_cap(`${get_host()}/{z}/{x}/{y}`);
   ctx.response.body = xml;
 });
 
-router.get("/ge/his/wmts", (ctx) => {
+router.get("/his/wmts", (ctx) => {
   const d = ctx.request.url.searchParams.get("d") || "";
   const v = ctx.request.url.searchParams.get("v") || "";
   const lower = ctx.request.url.searchParams.get("l") || "-180.0 -85.051129";
@@ -128,7 +128,7 @@ router.get("/ge/his/wmts", (ctx) => {
   [lon, lat] = upper.split(" ").map(Number);
   const upper_point = { lon, lat };
   const bbox: [GeoPoint, GeoPoint] = [lower_point, upper_point];
-  const url = `${get_host()}/ge/history/{z}/{x}/{y}?d=${d}&v=${v}`;
+  const url = `${get_host()}/history/{z}/{x}/{y}?d=${d}&v=${v}`;
   const xml = create_ge_his_cap(bbox, url);
   ctx.response.type = "text/xml;charset=UTF-8";
   ctx.response.body = xml;

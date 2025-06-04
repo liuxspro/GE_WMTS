@@ -3,8 +3,8 @@
   "specifiers": {
     "jsr:@deno-library/compress@*": "0.5.5",
     "jsr:@deno-library/crc32@1.0.2": "1.0.2",
-    "jsr:@liuxspro/capgen@*": "0.1.0",
-    "jsr:@liuxspro/capgen@0.1": "0.1.0",
+    "jsr:@es-toolkit/es-toolkit@^1.38.0": "1.38.0",
+    "jsr:@liuxspro/capgen@~0.2.1": "0.2.1",
     "jsr:@liuxspro/utils@*": "0.1.8",
     "jsr:@oak/commons@1": "1.0.0",
     "jsr:@oak/oak@*": "17.1.3",
@@ -48,9 +48,13 @@
     "@deno-library/crc32@1.0.2": {
       "integrity": "d2061bfee30c87c97f285dfca0fdc4458e632dc072a33ecfc73ca5177a5a39a0"
     },
-    "@liuxspro/capgen@0.1.0": {
-      "integrity": "a5eb4560ed1627a381c8637990c2ab1eff1ba4538224e970f4fab3de58b15047",
+    "@es-toolkit/es-toolkit@1.38.0": {
+      "integrity": "7a3fa3bbe873116ec37ed68ef1df6b8ec3d89bac56edd354b7d12ff8cc0d5a0a"
+    },
+    "@liuxspro/capgen@0.2.1": {
+      "integrity": "d01bb326c682a73e3aaec0fb76259015d5d6e7783e2cb02673fafaf002deeda6",
       "dependencies": [
+        "jsr:@es-toolkit/es-toolkit",
         "npm:minijinja-js"
       ]
     },
@@ -216,7 +220,7 @@
   },
   "workspace": {
     "dependencies": [
-      "jsr:@liuxspro/capgen@0.1",
+      "jsr:@liuxspro/capgen@~0.2.1",
       "jsr:@std/assert@1",
       "npm:protobufjs@^7.4.0"
     ]
