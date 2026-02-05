@@ -1,10 +1,12 @@
 {
-  "version": "4",
+  "version": "5",
   "specifiers": {
     "jsr:@deno-library/compress@*": "0.5.5",
     "jsr:@deno-library/crc32@1.0.2": "1.0.2",
     "jsr:@es-toolkit/es-toolkit@^1.38.0": "1.38.0",
+    "jsr:@hono/hono@^4.11.7": "4.11.7",
     "jsr:@liuxspro/capgen@~0.2.1": "0.2.1",
+    "jsr:@liuxspro/libs@~0.1.15": "0.1.15",
     "jsr:@liuxspro/utils@*": "0.1.8",
     "jsr:@oak/commons@1": "1.0.0",
     "jsr:@oak/oak@*": "17.1.3",
@@ -51,12 +53,18 @@
     "@es-toolkit/es-toolkit@1.38.0": {
       "integrity": "7a3fa3bbe873116ec37ed68ef1df6b8ec3d89bac56edd354b7d12ff8cc0d5a0a"
     },
+    "@hono/hono@4.11.7": {
+      "integrity": "2a0dc00088fbef98b76f575e3c4ab3d2c770d5e6095be215ae05c2aef25b363a"
+    },
     "@liuxspro/capgen@0.2.1": {
       "integrity": "d01bb326c682a73e3aaec0fb76259015d5d6e7783e2cb02673fafaf002deeda6",
       "dependencies": [
         "jsr:@es-toolkit/es-toolkit",
         "npm:minijinja-js"
       ]
+    },
+    "@liuxspro/libs@0.1.15": {
+      "integrity": "ae46341b741d8baa741c0101ce3034555d7aa8c7091f6315dfbbb980a4d3673a"
     },
     "@liuxspro/utils@0.1.8": {
       "integrity": "36ce86f95bca1e1f75346f4ddf31ecb48d5b05408df7d7c6b92a40451d062830"
@@ -212,7 +220,8 @@
         "@protobufjs/utf8",
         "@types/node",
         "long"
-      ]
+      ],
+      "scripts": true
     },
     "undici-types@6.20.0": {
       "integrity": "sha512-Ny6QZ2Nju20vw1SRHe3d9jVu6gJ+4e3+MMpqu7pqE5HT6WsTSlce++GQmK5UXS8mzV8DSYHrQH+Xrf2jVcuKNg=="
@@ -220,7 +229,9 @@
   },
   "workspace": {
     "dependencies": [
+      "jsr:@hono/hono@^4.11.7",
       "jsr:@liuxspro/capgen@~0.2.1",
+      "jsr:@liuxspro/libs@~0.1.15",
       "jsr:@std/assert@1",
       "npm:protobufjs@^7.4.0"
     ]
