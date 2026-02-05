@@ -1,0 +1,70 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <base target="_top" />
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+
+    <title>Quick Start - Leaflet</title>
+
+    <link rel="shortcut icon" type="image/x-icon" href="docs/images/favicon.ico" />
+
+    <script src="https://cdn.jsdelivr.net/npm/ol@v10.7.0/dist/ol.js"></script>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/ol@v10.7.0/ol.css" />
+
+    <style>
+      html,
+      body {
+        height: 100%;
+        margin: 0;
+      }
+      #map {
+        width: 80%;
+        height: 80%;
+        margin: 0 auto;
+        border: 1px solid #c9c9c9;
+      }
+      .title {
+        margin: 0 auto;
+        text-align: center;
+      }
+    </style>
+  </head>
+  <body>
+    <h1 class="title">Tile Preview</h1>
+    <div id="map"></div>
+    <script>
+      // 创建一个简单的瓦片网格，从0级开始
+      const resolutions = Array.from({ length: 20 }, (_, i) => 360 / Math.pow(2, i) / 256);
+      const tileGrid = new ol.tilegrid.TileGrid({
+        origin: [-180, 90], // EPSG:4326 的左上角
+        resolutions: resolutions,
+        tileSize: 256,
+      });
+      const debug = new ol.layer.Tile({
+        source: new ol.source.TileDebug({
+          projection: "EPSG:4326",
+          tileGrid: tileGrid,
+        }),
+      });
+      const layer = new ol.layer.Tile({
+        source: new ol.source.XYZ({
+          url: "/tile/{z}/{x}/{y}",
+          projection: "EPSG:4326",
+        }),
+      });
+      // 初始化EPSG:4326坐标系的地图
+      const map = new ol.Map({
+        target: "map",
+        layers: [layer, debug],
+        view: new ol.View({
+          center: [0, 0], // EPSG:4326使用经纬度坐标
+          zoom: 0,
+          projection: "EPSG:4326", // 指定使用EPSG:4326投影
+          extent: [-180, -90, 180, 90], // 设置地图范围
+        }),
+        constrainResolution: false,
+      });
+    </script>
+  </body>
+</html>
