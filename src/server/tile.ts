@@ -5,11 +5,11 @@ import { create_ge_cap } from "../wmts.ts";
 import { get_host } from "./utils.ts";
 
 const key = get_default_key();
-const version = parseInt(Deno.env.get("version") || "");
 
 export const router = new Hono();
 
 router.get("/:z/:x/:y", async (c) => {
+  const version = parseInt(Deno.env.get("version") || "");
   if (!version) {
     c.status(500);
     return c.body("Server version not initialized");

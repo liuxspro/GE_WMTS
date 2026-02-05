@@ -3,11 +3,12 @@ import { decode_qtree_data } from "./decode.ts";
 import {
   GEHistoryTileInfo,
   HistoryTilesInfo,
-  SparseQuadtreeNode,
   Layer,
+  SparseQuadtreeNode,
 } from "./info.ts";
-import { QuadKey, gcs_to_quad } from "./quad.ts";
+import { QuadKey } from "./quad.ts";
 import { decode_tile } from "./decode.ts";
+import { CRS84XYZ } from "@liuxspro/libs/geo";
 
 const kv = await Deno.openKv();
 
@@ -34,9 +35,10 @@ export async function get_hisversion() {
  */
 export async function fetch_his_qtree_rawdata(
   quad_key: string,
-  version: number
+  version: number,
 ): Promise<Uint8Array> {
-  const his_qtree_url = `https://khmdb.google.com/flatfile?db=tm&qp-${quad_key}-q.${version}`;
+  const his_qtree_url =
+    `https://khmdb.google.com/flatfile?db=tm&qp-${quad_key}-q.${version}`;
   const data = await (await fetch(his_qtree_url)).bytes();
   return data;
 }
@@ -52,7 +54,7 @@ export async function fetch_his_qtree_rawdata(
 export async function get_his_qtree(
   quad_key: string,
   version: number,
-  key: Uint8Array
+  key: Uint8Array,
 ) {
   // 检查该 qtree 文件是否已经被缓存
   const entry = await kv.get(["History", version, quad_key]);
@@ -85,7 +87,7 @@ export async function deserialize_qtreepacket(qtree_data: Uint8Array) {
  * @returns {Promise<GEHistoryTileInfo[]>} Tile 列表
  */
 export async function get_nodes_from_qtree(
-  qtree_data: Uint8Array
+  qtree_data: Uint8Array,
 ): Promise<GEHistoryTileInfo[]> {
   const qtree = await deserialize_qtreepacket(qtree_data);
   const sparse_qtree_nodes: SparseQuadtreeNode[] = qtree["sparseQuadtreeNode"];
@@ -103,7 +105,7 @@ export async function get_nodes_from_qtree(
 
 export async function parse_history_qtree(
   qtree_data: Uint8Array,
-  quad_key: string
+  quad_key: string,
 ): Promise<HistoryTilesInfo> {
   const nodes = await get_nodes_from_qtree(qtree_data);
   const tiles_info: HistoryTilesInfo = {};
@@ -113,7 +115,7 @@ export async function parse_history_qtree(
   function populate_tiles(
     parentKey: string,
     parent: GEHistoryTileInfo,
-    level: number
+    level: number,
   ) {
     // 如果是叶子节点（level === 4），设置所有子节点为 null
     const isLeaf = level === 4 && !parent.has_subtree();
@@ -157,10 +159,11 @@ export async function get_history_tile(
   z: number,
   version: number,
   date: string,
-  key: Uint8Array
+  key: Uint8Array,
 ) {
   const quad = new QuadKey(x, y, z);
-  const tile_url = `https://khmdb.google.com/flatfile?db=tm&f1-${quad.quad_key}-i.${version}-${date}`;
+  const tile_url =
+    `https://khmdb.google.com/flatfile?db=tm&f1-${quad.quad_key}-i.${version}-${date}`;
   const raw_tile_data = await (await fetch(tile_url)).bytes();
   const decrypted_tile_data = decode_tile(raw_tile_data, key);
   return decrypted_tile_data;
@@ -182,9 +185,11 @@ export function number_to_date(date_number: number) {
   const day = parseInt(dayBinary, 2);
 
   // 4. 返回日期字符串
-  return `${year}-${month.toString().padStart(2, "0")}-${day
-    .toString()
-    .padStart(2, "0")}`;
+  return `${year}-${month.toString().padStart(2, "0")}-${
+    day
+      .toString()
+      .padStart(2, "0")
+  }`;
 }
 
 /**
@@ -198,7 +203,7 @@ export function number_to_date(date_number: number) {
 export async function get_history_layer(
   quad: QuadKey,
   version: number,
-  key: Uint8Array
+  key: Uint8Array,
 ): Promise<Layer[]> {
   const qtree_data = await get_his_qtree(quad.parent_quad_key, version, key);
   const tiles = await parse_history_qtree(qtree_data, quad.parent_quad_key);
@@ -221,9 +226,10 @@ export async function query_point(
   lon: number,
   level: number,
   version: number,
-  key: Uint8Array
+  key: Uint8Array,
 ) {
-  const quad = new QuadKey(gcs_to_quad(lat, lon, level));
+  const quad_string = CRS84XYZ.from_lonlat(lon, lat, level).to_ge_quadkey();
+  const quad = new QuadKey(quad_string);
   const layers = await get_history_layer(quad, version, key);
   return layers;
 }

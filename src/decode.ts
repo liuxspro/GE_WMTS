@@ -1,5 +1,5 @@
-import { inflate } from "jsr:@deno-library/compress";
-import { array_is_equal } from "jsr:@liuxspro/utils";
+import { inflate } from "@deno-library/compress";
+import { array_is_equal } from "@liuxspro/libs/array";
 
 /**
  * ## 使用密钥解密数据
@@ -9,7 +9,7 @@ import { array_is_equal } from "jsr:@liuxspro/utils";
  * @returns {Uint8Array} 解密后的数据，若输入为空则返回空数组
  *
  * @example
- * // 基本用法
+ * 基本用法
  * const encrypted = new Uint8Array([0x12, 0x34, 0x56,...]);
  * const key = new Uint8Array(1024); // 1024字节密钥
  * const decrypted = decode_data(encrypted, key);
@@ -20,7 +20,7 @@ import { array_is_equal } from "jsr:@liuxspro/utils";
  */
 export function decode_data(
   encrypted_data: Uint8Array,
-  key: Uint8Array
+  key: Uint8Array,
 ): Uint8Array {
   // 创建一个新的 Uint8Array 来存储解密后的数据
   const decrypted = new Uint8Array(encrypted_data.length);
@@ -55,7 +55,7 @@ export function decode_data(
  */
 export function decode_qtree_data(
   encrypted_data: Uint8Array,
-  key: Uint8Array
+  key: Uint8Array,
 ): Uint8Array {
   const zlib_data = decode_data(encrypted_data, key);
   const decompressed = inflate(zlib_data.slice(8));
@@ -70,7 +70,7 @@ export function decode_qtree_data(
  */
 export function decode_tile(
   tile_data: Uint8Array,
-  key: Uint8Array
+  key: Uint8Array,
 ): Uint8Array | null {
   const header = new Uint8Array([0x07, 0x91, 0xef, 0xa6]);
   // 判断一下文件头

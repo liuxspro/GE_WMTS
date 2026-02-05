@@ -2,6 +2,7 @@
   "version": "5",
   "specifiers": {
     "jsr:@deno-library/compress@*": "0.5.5",
+    "jsr:@deno-library/compress@~0.5.6": "0.5.6",
     "jsr:@deno-library/crc32@1.0.2": "1.0.2",
     "jsr:@es-toolkit/es-toolkit@^1.38.0": "1.38.0",
     "jsr:@hono/hono@^4.11.7": "4.11.7",
@@ -18,14 +19,16 @@
     "jsr:@std/encoding@^1.0.5": "1.0.5",
     "jsr:@std/fs@1.0.5": "1.0.5",
     "jsr:@std/http@1": "1.0.12",
-    "jsr:@std/internal@^1.0.5": "1.0.5",
+    "jsr:@std/internal@^1.0.12": "1.0.12",
+    "jsr:@std/internal@^1.0.5": "1.0.12",
     "jsr:@std/io@0.224": "0.224.9",
     "jsr:@std/io@0.225.0": "0.225.0",
     "jsr:@std/media-types@1": "1.1.0",
     "jsr:@std/path@*": "1.0.8",
     "jsr:@std/path@1": "1.0.8",
     "jsr:@std/path@1.0.8": "1.0.8",
-    "jsr:@std/path@^1.0.7": "1.0.8",
+    "jsr:@std/path@^1.0.7": "1.1.4",
+    "jsr:@std/path@^1.1.4": "1.1.4",
     "jsr:@std/streams@^1.0.7": "1.0.8",
     "jsr:@std/tar@0.1.3": "0.1.3",
     "jsr:@zip-js/zip-js@2.7.53": "2.7.53",
@@ -38,6 +41,17 @@
   "jsr": {
     "@deno-library/compress@0.5.5": {
       "integrity": "18b651a33eac87d96ae8c941487045724a665d654e9d94120da43777393655d9",
+      "dependencies": [
+        "jsr:@deno-library/crc32",
+        "jsr:@std/fs",
+        "jsr:@std/io@0.225.0",
+        "jsr:@std/path@1.0.8",
+        "jsr:@std/tar",
+        "jsr:@zip-js/zip-js"
+      ]
+    },
+    "@deno-library/compress@0.5.6": {
+      "integrity": "9d76e37e7682fc8d3d99d5641a7af454ce4689b1df3fd3062141a1deb64453cd",
       "dependencies": [
         "jsr:@deno-library/crc32",
         "jsr:@std/fs",
@@ -97,7 +111,7 @@
     "@std/assert@1.0.9": {
       "integrity": "a9f0c611a869cc791b26f523eec54c7e187aab7932c2c8e8bea0622d13680dcd",
       "dependencies": [
-        "jsr:@std/internal"
+        "jsr:@std/internal@^1.0.5"
       ]
     },
     "@std/bytes@1.0.4": {
@@ -124,6 +138,9 @@
     "@std/internal@1.0.5": {
       "integrity": "54a546004f769c1ac9e025abd15a76b6671ddc9687e2313b67376125650dc7ba"
     },
+    "@std/internal@1.0.12": {
+      "integrity": "972a634fd5bc34b242024402972cd5143eac68d8dffaca5eaa4dba30ce17b027"
+    },
     "@std/io@0.224.9": {
       "integrity": "4414664b6926f665102e73c969cfda06d2c4c59bd5d0c603fd4f1b1c840d6ee3",
       "dependencies": [
@@ -141,6 +158,12 @@
     },
     "@std/path@1.0.8": {
       "integrity": "548fa456bb6a04d3c1a1e7477986b6cffbce95102d0bb447c67c4ee70e0364be"
+    },
+    "@std/path@1.1.4": {
+      "integrity": "1d2d43f39efb1b42f0b1882a25486647cb851481862dc7313390b2bb044314b5",
+      "dependencies": [
+        "jsr:@std/internal@^1.0.12"
+      ]
     },
     "@std/streams@1.0.8": {
       "integrity": "b41332d93d2cf6a82fe4ac2153b930adf1a859392931e2a19d9fabfb6f154fb3"
@@ -229,10 +252,12 @@
   },
   "workspace": {
     "dependencies": [
+      "jsr:@deno-library/compress@~0.5.6",
       "jsr:@hono/hono@^4.11.7",
       "jsr:@liuxspro/capgen@~0.2.1",
       "jsr:@liuxspro/libs@~0.1.15",
       "jsr:@std/assert@1",
+      "jsr:@std/path@^1.1.4",
       "npm:protobufjs@^7.4.0"
     ]
   }
