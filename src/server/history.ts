@@ -6,7 +6,6 @@ import { create_ge_his_cap } from "../wmts.ts";
 import { get_host } from "./utils.ts";
 
 const key = get_default_key();
-const his_version = parseInt(Deno.env.get("his_version") || "");
 
 export const router = new Hono();
 /**
@@ -14,6 +13,7 @@ export const router = new Hono();
  * http://localhost:8000/history/query?lon=117.11919576379941&lat=34.25658580862091&level=18
  */
 router.get("/query", async (c) => {
+  const his_version = parseInt(Deno.env.get("his_version") || "");
   const lon = c.req.query("lon") || "";
   const lat = c.req.query("lat") || "";
   const level = c.req.query("level") || "";
