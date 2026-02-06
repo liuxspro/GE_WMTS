@@ -69,7 +69,7 @@ export function decode_tile(
 
 /**
  * ## 解码 Qtree 数据
- * 先用密钥解密，解密后是 zlib 压缩后的数据
+ * 先用密钥解码，解码后是 zlib 压缩后的数据
  * 再解压数据得到原始数据
  * @param encrypted_data 请求得到的原始 Qtree数据
  * @param key 密钥
@@ -77,7 +77,7 @@ export function decode_tile(
  */
 export function decode_qtree_data(
   encrypted_data: Uint8Array,
-  key: Uint8Array,
+  key?: Uint8Array,
 ): Uint8Array {
   const zlib_data = decode_data(encrypted_data, key);
   const decompressed = inflate(zlib_data.slice(8));
