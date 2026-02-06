@@ -1,5 +1,4 @@
 import protobuf from "protobufjs";
-import { decode_qtree_data } from "./decode.ts";
 import {
   GEHistoryTileInfo,
   HistoryTilesInfo,
@@ -7,7 +6,7 @@ import {
   SparseQuadtreeNode,
 } from "./info.ts";
 import { QuadKey } from "./quad.ts";
-import { decode_tile } from "./decode.ts";
+import { decode_qtree_data, decode_tile } from "./libge/mod.ts";
 import { CRS84XYZ } from "@liuxspro/libs/geo";
 
 const kv = await Deno.openKv();

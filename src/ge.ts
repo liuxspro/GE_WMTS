@@ -1,6 +1,6 @@
 import { get_qtree, parse_qtree } from "./qtree.ts";
 import { QuadKey } from "./quad.ts";
-import { decode_tile } from "./decode.ts";
+import { decode_tile } from "./libge/mod.ts";
 
 /**
  * 根据 version 获取瓦片
@@ -16,10 +16,11 @@ export async function get_ge_tile(
   y: number,
   z: number,
   version: number,
-  key: Uint8Array
+  key: Uint8Array,
 ) {
   const quad = new QuadKey(x, y, z);
-  const tile_url = `https://kh.google.com/flatfile?f1-${quad.quad_key}-i.${version}`;
+  const tile_url =
+    `https://kh.google.com/flatfile?f1-${quad.quad_key}-i.${version}`;
   const raw_tile_data = await (await fetch(tile_url)).bytes();
   const decrypted_tile_data = decode_tile(raw_tile_data, key);
   return decrypted_tile_data;
@@ -39,7 +40,7 @@ export async function get_tile(
   y: number,
   z: number,
   version: number,
-  key: Uint8Array
+  key: Uint8Array,
 ) {
   const quad = new QuadKey(x, y, z);
   const qtree_name = quad.parent_quad_key;

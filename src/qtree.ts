@@ -1,5 +1,5 @@
 import { array_is_equal } from "@liuxspro/libs/array";
-import { decode_qtree_data } from "./decode.ts";
+import { decode_qtree_data } from "./libge/mod.ts";
 import { GETileInfo } from "./info.ts";
 
 const kv = await Deno.openKv();
