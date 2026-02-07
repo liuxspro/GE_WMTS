@@ -1,5 +1,5 @@
 import { assertEquals } from "@std/assert";
-import { number_to_date } from "../src/history.ts";
+import { number_to_date } from "../src/libge/history/mod.ts";
 
 Deno.test(function test_number_to_date() {
   // 以瓦片 18/214697/40742 为例
