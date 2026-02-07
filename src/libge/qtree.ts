@@ -1,47 +1,28 @@
 import { array_is_equal } from "@liuxspro/libs/array";
-import { decode_qtree_data } from "./libge/mod.ts";
-import { GETileInfo } from "./info.ts";
+import { TileInfo } from "./types.ts";
+import { decode_qtree_data } from "./decode.ts";
 
-const kv = await Deno.openKv();
-
-/**
- * 请求原始的 qtree 数据
- * @param {string} quad_key 完整的四叉树编码
- * @param {number} version 当前版本
- * @returns {Promise<Uint8Array>} 原始 qtree packet 数据
- */
-export async function fetch_qtree_rawdata(
-  quad_key: string,
-  version: number,
-): Promise<Uint8Array> {
-  const qtree_url =
-    `https://kh.google.com/flatfile?q2-${quad_key}-q.${version}`;
-  const data = await (await fetch(qtree_url)).bytes();
-  return data;
-}
+type TilesInfo = {
+  [key: string]: TileInfo | null;
+};
 
 /**
- * 获取 qtree 信息(有缓存)
- * @param quad_key quad key
- * @param version qtree version
- * @param key 密钥
- * @returns
+ * 获取 qtree 数据
+ * @param quad_key 要获取的 qtree
+ * @param version 当前版本
+ * @param key 可选密钥
+ * @returns qtree数据包
  */
 export async function get_qtree(
   quad_key: string,
   version: number,
-  key: Uint8Array,
-) {
-  const entry = await kv.get(["Earth", version, quad_key]);
-  // 如果 KV 中有，直接解密一下返回
-  // 没有就抓取并缓存到 KV 中
-  if (entry.value) {
-    return decode_qtree_data(entry.value as Uint8Array, key);
-  } else {
-    const qtree_rawdata = await fetch_qtree_rawdata(quad_key, version);
-    await kv.set(["Earth", version, quad_key], qtree_rawdata);
-    return decode_qtree_data(qtree_rawdata, key);
-  }
+  key?: Uint8Array,
+): Promise<Uint8Array> {
+  const qtree_url =
+    `https://kh.google.com/flatfile?q2-${quad_key}-q.${version}`;
+  const qtree_rawdata = await (await fetch(qtree_url)).bytes();
+  const qtree_data = decode_qtree_data(qtree_rawdata, key);
+  return qtree_data;
 }
 
 function to_number(a: Uint8Array): number {
@@ -55,16 +36,21 @@ function to_number(a: Uint8Array): number {
   return decimalNumber;
 }
 
-export function parse_qtree_node(node_data: Uint8Array): GETileInfo {
+/**
+ * 解析 Qtree 节点信息
+ * @param node_data 节点数据(固定为32字节)
+ * @returns
+ */
+export function parse_qtree_node(node_data: Uint8Array): TileInfo {
   // 节点数据长度为 32
   if (node_data.length != 32) {
-    throw "invalid node data";
+    throw new Error("invalid node data");
   }
   const bitfield = to_number(node_data.slice(0, 1));
   const cnode_version = to_number(node_data.slice(2, 4));
   const imagery_version = to_number(node_data.slice(4, 6));
   const terrain_version = to_number(node_data.slice(6, 8));
-  return new GETileInfo(
+  return new TileInfo(
     bitfield,
     cnode_version,
     imagery_version,
@@ -75,9 +61,9 @@ export function parse_qtree_node(node_data: Uint8Array): GETileInfo {
 /**
  * 解析 Qtree 数据包
  * @param qtree_data
- * @returns {GETileInfo[]} GETileInfo 数组
+ * @returns {TileInfo[]} TileInfo 数组
  */
-export function get_nodes_from_qtree(qtree_data: Uint8Array): GETileInfo[] {
+export function get_nodes_from_qtree(qtree_data: Uint8Array): TileInfo[] {
   const magic = new Uint8Array([0x2d, 0x7e, 0x00, 0x00]);
 
   if (!array_is_equal(qtree_data.slice(0, 4), magic)) {
@@ -91,10 +77,11 @@ export function get_nodes_from_qtree(qtree_data: Uint8Array): GETileInfo[] {
   return nodes;
 }
 
-type TilesInfo = {
-  [key: string]: GETileInfo | null;
-};
-
+/**
+ * @param qtree_data
+ * @param quad_key
+ * @returns
+ */
 export function parse_qtree(
   qtree_data: Uint8Array,
   quad_key: string,
@@ -106,7 +93,7 @@ export function parse_qtree(
   // 递归函数：填充 tiles_info
   function populate_tiles(
     parentKey: string,
-    parent: GETileInfo,
+    parent: TileInfo,
     level: number,
   ) {
     // 如果是叶子节点（level === 4），设置所有子节点为 null
