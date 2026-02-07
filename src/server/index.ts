@@ -1,7 +1,7 @@
 import { Hono } from "hono";
 import { cors } from "hono/cors";
 import { serveStatic } from "hono/deno";
-import { get_version_and_key } from "../version.ts";
+import { get_version_and_key } from "../libge/mod.ts";
 import { get_hisversion } from "../history.ts";
 import { router as tile_router } from "./tile.ts";
 import { router as history_router } from "./history.ts";

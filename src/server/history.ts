@@ -1,7 +1,7 @@
 import { Hono } from "hono";
 import { GeoPoint } from "@liuxspro/capgen";
 import { get_history_tile, query_point } from "../history.ts";
-import { get_default_key } from "../version.ts";
+import { get_default_key } from "../libge/mod.ts";
 import { create_ge_his_cap } from "../wmts.ts";
 import { get_host } from "./utils.ts";
 

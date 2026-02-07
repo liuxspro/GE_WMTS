@@ -1,6 +1,6 @@
 import { Hono } from "hono";
 import { get_tile } from "../ge.ts";
-import { get_default_key } from "../version.ts";
+import { get_default_key } from "../libge/mod.ts";
 import { create_ge_cap } from "../wmts.ts";
 import { get_host } from "./utils.ts";
 
