@@ -113,7 +113,14 @@ export class QuadKey {
     return qtree_name;
   }
 
+  /**
+   * 获取当前 quad 对应的瓦片图片数据
+   * @param version 当前版本
+   * @param key 可选密钥
+   * @returns 瓦片图片
+   */
   async get_tile(version: number, key?: Uint8Array) {
+    // 瓦片信息存储在父级 qtree 中
     const qtree_data = await get_qtree(this.parent_quad_key, version, key);
     const tiles = parse_qtree(qtree_data, this.parent_quad_key);
     const tile_info = tiles[this.quad_key];

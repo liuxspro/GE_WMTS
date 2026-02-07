@@ -25,8 +25,14 @@ const cacheFlagBitmask = 0x10; // True if there is a child subtree
 const imageBitmask = 0x40;
 const terrainBitmask = 0x80;
 
-// See: https://github.com/google/earthenterprise/blob/master/earth_enterprise/src/keyhole/earth_client_protobuf/quadtreeset.protodevel
-// See: https://github.com/CesiumGS/cesium/blob/main/packages/engine/Source/Workers/decodeGoogleEarthEnterprisePacket.js
+/**
+ * QuadtreeNode 表示一个四叉树节点，包含一个 bitfield 用于标识节点的属性和子节点信息。
+ *
+ * See:
+ * - https://github.com/CesiumGS/cesium/blob/main/packages/engine/Source/Core/GoogleEarthEnterpriseTileInformation.js
+ * - https://github.com/CesiumGS/cesium/blob/main/packages/engine/Source/Workers/decodeGoogleEarthEnterprisePacket.js
+ * - https://github.com/google/earthenterprise/blob/master/earth_enterprise/src/keyhole/earth_client_protobuf/quadtreeset.protodevel
+ */
 export class QuadtreeNode {
   bitfield: number;
 
