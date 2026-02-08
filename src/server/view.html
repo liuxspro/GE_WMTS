@@ -7,10 +7,17 @@
 
     <title>Quick Start - Leaflet</title>
 
-    <link rel="shortcut icon" type="image/x-icon" href="docs/images/favicon.ico" />
+    <link
+      rel="shortcut icon"
+      type="image/x-icon"
+      href="docs/images/favicon.ico"
+    />
 
     <script src="https://cdn.jsdelivr.net/npm/ol@v10.7.0/dist/ol.js"></script>
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/ol@v10.7.0/ol.css" />
+    <link
+      rel="stylesheet"
+      href="https://cdn.jsdelivr.net/npm/ol@v10.7.0/ol.css"
+    />
 
     <style>
       html,
@@ -35,7 +42,10 @@
     <div id="map"></div>
     <script>
       // 创建一个简单的瓦片网格，从0级开始
-      const resolutions = Array.from({ length: 20 }, (_, i) => 360 / Math.pow(2, i) / 256);
+      const resolutions = Array.from(
+        { length: 20 },
+        (_, i) => 360 / Math.pow(2, i) / 256,
+      );
       const tileGrid = new ol.tilegrid.TileGrid({
         origin: [-180, 90], // EPSG:4326 的左上角
         resolutions: resolutions,
@@ -59,11 +69,14 @@
         layers: [layer, debug],
         view: new ol.View({
           center: [0, 0], // EPSG:4326使用经纬度坐标
-          zoom: 0,
+          minZoom: 2,
+          maxZoom: 20,
+          zoom: 2,
           projection: "EPSG:4326", // 指定使用EPSG:4326投影
-          extent: [-180, -90, 180, 90], // 设置地图范围
+          // extent: [-180, -90, 180, 90], // 设置地图范围
+          multiWorld: true,
+          constrainResolution: true,
         }),
-        constrainResolution: false,
       });
     </script>
   </body>
