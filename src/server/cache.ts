@@ -5,11 +5,12 @@ const kv = await Deno.openKv(`${Deno.cwd()}/Cache/cache.db`);
 
 export async function create_cache_dir() {
   try {
-    await Deno.mkdir("Cache", { recursive: true });
-    console.log(`[Init] [Cache] - Create Cache Dir`);
+    await Deno.stat("./Cache");
+    // console.log("[Init] [Cache] - Cache 文件夹已存在");
   } catch (err) {
-    if (err instanceof Deno.errors.AlreadyExists) {
-      console.log("Cache 文件夹已存在");
+    if (err instanceof Deno.errors.NotFound) {
+      await Deno.mkdir("Cache", { recursive: true });
+      console.log(`[Init] [Cache] - Create Cache Dir`);
     } else {
       console.error("[Init] [Cache] - 发生错误:", err);
     }
