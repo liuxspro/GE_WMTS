@@ -1,7 +1,8 @@
 import { Hono } from "hono";
-import { get_default_key, QuadKey } from "../libge/mod.ts";
+import { get_default_key } from "../libge/mod.ts";
 import { create_ge_cap } from "../wmts.ts";
 import { get_host } from "./utils.ts";
+import { QuadKeyCache } from "./cache.ts";
 
 const key = get_default_key();
 
@@ -18,7 +19,7 @@ router.get("/:z/:x/:y", async (c) => {
   const nx = parseInt(x);
   const ny = parseInt(y);
 
-  const quad = new QuadKey(nx, ny, nz);
+  const quad = new QuadKeyCache(nx, ny, nz);
 
   const tile_data = await quad.get_tile(version, key);
   if (tile_data) {

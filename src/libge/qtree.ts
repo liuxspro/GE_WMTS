@@ -7,7 +7,7 @@ type TilesInfo = {
 };
 
 /**
- * 获取 qtree 数据
+ * 获取 qtree 数据 (已解码)
  * @param quad_key 要获取的 qtree
  * @param version 当前版本
  * @param key 可选密钥

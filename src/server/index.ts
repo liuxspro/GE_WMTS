@@ -6,18 +6,25 @@ import { get_hisversion } from "../history.ts";
 import { router as tile_router } from "./tile.ts";
 import { router as history_router } from "./history.ts";
 import { PORT } from "./utils.ts";
+import { create_cache_dir } from "./cache.ts";
 
 // 获取当前版本和密钥
-console.log("初始化, 获取 version...");
-const { version, key: _key } = await get_version_and_key();
-const his_version = await get_hisversion();
-Deno.env.set("version", `${version}`);
-Deno.env.set("his_version", `${his_version}`);
+console.log("[Init] [Get Version] - 初始化, 获取 version...");
 
-console.log(
-  `[Init] [Get Version] - Earth: ${version} History: ${his_version}`,
-);
-console.log("初始化完成!\n");
+try {
+  const { version, key: _key } = await get_version_and_key();
+  const his_version = await get_hisversion();
+  Deno.env.set("version", `${version}`);
+  Deno.env.set("his_version", `${his_version}`);
+  console.log(
+    `[Init] [Get Version] - Earth: ${version} History: ${his_version}`,
+  );
+} catch (_error) {
+  console.error("[Init] [Get Version] - 获取 version 失败");
+  Deno.exit(1);
+}
+
+create_cache_dir();
 
 // server
 const app = new Hono();
