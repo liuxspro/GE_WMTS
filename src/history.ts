@@ -5,42 +5,16 @@ import {
   Layer,
   SparseQuadtreeNode,
 } from "./info.ts";
-import { QuadKey } from "./quad.ts";
-import { decode_qtree_data, decode_tile } from "./libge/mod.ts";
+
+import {
+  decode_qtree_data,
+  decode_tile,
+  fetch_his_qtree_rawdata,
+  QuadKey,
+} from "./libge/mod.ts";
 import { CRS84XYZ } from "@liuxspro/libs/geo";
 
 const kv = await Deno.openKv();
-
-export async function get_his_dbroot() {
-  const url = "http://khmdb.google.com/dbRoot.v5?db=tm&hl=zh-hans&gl=hk";
-  const data = await (await fetch(url)).bytes();
-  return data;
-}
-
-export async function get_hisversion() {
-  const dbroot_data = await get_his_dbroot();
-  const version_byte = dbroot_data.slice(6, 8);
-  // 组合为 16 位整数 小端序
-  const uint16Value = (version_byte[1] << 8) | version_byte[0];
-  const version = uint16Value ^ 0x4200;
-  return version;
-}
-
-/**
- * 请求 qtree packet 数据
- * @param {string} quad_key 完整的四叉树编码
- * @param {number} version 当前版本
- * @returns {Promise<Uint8Array>} 原始 qtree packet 数据
- */
-export async function fetch_his_qtree_rawdata(
-  quad_key: string,
-  version: number,
-): Promise<Uint8Array> {
-  const his_qtree_url =
-    `https://khmdb.google.com/flatfile?db=tm&qp-${quad_key}-q.${version}`;
-  const data = await (await fetch(his_qtree_url)).bytes();
-  return data;
-}
 
 /**
  * 获取历史模式 Qtree 数据
