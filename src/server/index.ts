@@ -5,7 +5,6 @@ import { get_hisversion, get_version_and_key } from "../libge/mod.ts";
 import { router as tile_router } from "./tile.ts";
 import { router as history_router } from "./history.ts";
 import { PORT } from "./utils.ts";
-import { create_cache_dir } from "./cache.ts";
 
 // 获取当前版本和密钥
 console.log("[Init] [Get Version] - 初始化, 获取 version...");
@@ -23,21 +22,19 @@ try {
   Deno.exit(1);
 }
 
-await create_cache_dir();
-
 console.log();
 
 // server
 const app = new Hono();
 app.use(
   "/view",
-  serveStatic({ path: "./data/view.html" }),
+  serveStatic({ path: "./src/server/view.html" }),
 );
 app.use("*", cors());
 
 app.get("/", (c) => {
   return c.html(`
-    <a href="/view">Preview</a><br />
+    <a href="/view">Preview</a><br/>
     <a href="/tile/wmts">WMTS Capabilities</a>
     <br/>
     <code>On Deno Deploy 💖</code>

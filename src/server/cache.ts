@@ -1,6 +1,7 @@
 import { get_tile_by_version, QuadKey } from "../libge/quad.ts";
 import { get_qtree, parse_qtree } from "../libge/mod.ts";
 
+await create_cache_dir();
 const kv = await Deno.openKv(`${Deno.cwd()}/Cache/cache.db`);
 
 export async function create_cache_dir() {
